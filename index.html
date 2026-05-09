@@ -772,29 +772,33 @@ function updateSplit(){
 }
 
 function saveOp(){
-  if(!opSelectedPlots.length||!opCostGroup){alert('請選擇田區與成本類型');return;}
-  // ensure opCat is set
-  if(!opCat){
+  const product=document.getElementById('opProduct')?.value.trim();
+  if(!product){alert('請填寫品名/項目');return;}
+  const totalAmt=parseFloat(document.getElementById('opAmt')?.value)||0;
+
+  // opCat 自動補上
+  if(opCostGroup&&!opCat){
     const grp=COST_GROUPS.find(g=>g.id===opCostGroup);
     if(grp) opCat=grp.cats[0];
   }
-  const product=document.getElementById('opProduct').value.trim();
-  if(!product){alert('請填寫品名');return;}
-  const totalAmt=parseFloat(document.getElementById('opAmt').value)||0;
-  if(!totalAmt){alert('請填寫費用');return;}
-  const perPlotAmt=Math.round(totalAmt/opSelectedPlots.length);
+
+  const plotIds=opSelectedPlots.length?opSelectedPlots.slice():[];
+  const perPlotAmt=plotIds.length?Math.round(totalAmt/plotIds.length):totalAmt;
+
   DB.ops.unshift({
-    id:uid(), date:document.getElementById('opDate').value,
-    plotIds:opSelectedPlots.slice(), plotId:opSelectedPlots[0],
-    costGroup:opCostGroup, cat:opCat,
+    id:uid(),
+    date:document.getElementById('opDate')?.value||today(),
+    plotIds, plotId:plotIds[0]||'',
+    costGroup:opCostGroup||'other',
+    cat:opCat||opCostGroup||'other',
     product, amount:totalAmt, perPlotAmt,
-    qty:document.getElementById('opQty').value,
-    note:document.getElementById('opNote').value,
+    qty:document.getElementById('opQty')?.value||'',
+    note:document.getElementById('opNote')?.value||'',
   });
   saveDB();
   opCat=''; opCostGroup='';
-  document.getElementById('opSaveBtn').textContent='✓ 已儲存！';
-  document.getElementById('opSaveBtn').style.background='#22c55e';
+  const btn=document.getElementById('opSaveBtn');
+  if(btn){ btn.textContent='✓ 已儲存！'; btn.style.background='#22c55e'; }
   setTimeout(()=>renderFarm(), 1500);
 }
 function delOp(id){ DB.ops=DB.ops.filter(o=>o.id!==id); saveDB(); renderFarm(); }
@@ -1255,13 +1259,20 @@ function procCostHTML(){
 }
 function setProcCat(c){ procCat=c; renderProc(); }
 function saveProc(){
-  if(!procCat){alert('請選擇成本類別');return;}
-  const product=document.getElementById('pc_product').value.trim();
-  if(!product){alert('請填寫品名');return;}
-  DB.proc.unshift({id:uid(),date:document.getElementById('pc_date').value,cat:procCat,product,amount:parseFloat(document.getElementById('pc_amt').value)||0,qty:document.getElementById('pc_qty').value,note:document.getElementById('pc_note').value});
+  const product=document.getElementById('pc_product')?.value.trim();
+  if(!product){alert('請填寫品名/項目');return;}
+  DB.proc.unshift({
+    id:uid(),
+    date:document.getElementById('pc_date')?.value||today(),
+    cat:procCat||'misc',
+    product,
+    amount:parseFloat(document.getElementById('pc_amt')?.value)||0,
+    qty:document.getElementById('pc_qty')?.value||'',
+    note:document.getElementById('pc_note')?.value||''
+  });
   saveDB(); procCat='';
-  document.getElementById('pcSaveBtn').textContent='✓ 已儲存！';
-  document.getElementById('pcSaveBtn').style.background='#22c55e';
+  const btn=document.getElementById('pcSaveBtn');
+  if(btn){ btn.textContent='✓ 已儲存！'; btn.style.background='#22c55e'; }
   setTimeout(()=>renderProc(),1600);
 }
 function delProc(id){ DB.proc=DB.proc.filter(o=>o.id!==id); saveDB(); renderProc(); }
