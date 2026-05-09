@@ -1,0 +1,2634 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="鋐品農產行">
+<meta name="theme-color" content="#052e16">
+<title>鋐品農產行 ERP</title>
+<script>window.tailwind=window.tailwind||{};</script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script>tailwind.config={corePlugins:{preflight:true}};</script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+  --safe-l:   env(safe-area-inset-left,  0px);
+  --safe-r:   env(safe-area-inset-right, 0px);
+  --green:    #166534;
+  --green-dk: #052e16;
+  --amber:    #d97706;
+  --radius:   14px;
+}
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; }
+html { height:100%; }
+body {
+  font-family:'Noto Sans TC','PingFang TC',sans-serif;
+  background:#f0ede6;
+  min-height:100%;
+  margin:0;
+}
+
+/* ── Header 固定在頂部 ── */
+#header {
+  position:fixed; top:0; left:0; right:0; z-index:40;
+  background:#052e16;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* ── 底部導覽固定 ── */
+#bottom-nav {
+  position:fixed; bottom:0; left:0; right:0; z-index:40;
+  background:#fff;
+  border-top:1px solid #e5e2db;
+  display:flex;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -2px 12px rgba(0,0,0,.08);
+}
+
+/* ── 內容區（header + bottom-nav 高度留空） ── */
+#content {
+  padding-top: calc(68px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  padding-left: 14px;
+  padding-right: 14px;
+  min-height: 100vh;
+}
+
+.bnav-btn {
+  flex:1; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:2px; padding:8px 2px 6px;
+  border:none; background:none; cursor:pointer; font-family:inherit;
+  color:#a8a29e; transition:color .15s; min-height:56px;
+}
+.bnav-btn .bico { font-size:22px; line-height:1; }
+.bnav-btn .blbl { font-size:10px; font-weight:700; line-height:1; }
+.bnav-btn.on { color:var(--green); }
+.bnav-btn.on .blbl { color:var(--green); }
+
+/* ── 基本元件 ── */
+.hide { display:none !important; }
+.card { background:#fff; border-radius:var(--radius); border:1px solid #e5e2db; box-shadow:0 1px 6px rgba(0,0,0,.06); }
+.p4 { padding:16px; }
+
+/* Modal — 從底部滑上來 */
+.modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:100; display:flex; align-items:flex-end; }
+.modal-box {
+  background:#fff; width:100%; border-radius:22px 22px 0 0;
+  padding:20px 16px calc(20px + var(--safe-bot));
+  max-height:88vh; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  max-width:512px; margin:0 auto;
+}
+/* Modal 拖動把手 */
+.modal-box::before {
+  content:''; display:block; width:36px; height:4px;
+  background:#d6d3d1; border-radius:2px; margin:0 auto 16px;
+}
+
+/* ── 輸入欄位（手機加大） ── */
+.inp {
+  width:100%; padding:13px 14px; border-radius:12px;
+  border:2px solid #e5e2db; background:#fafaf7;
+  font-size:16px; /* 防止 iOS 自動放大 */
+  font-family:inherit; outline:none; transition:border-color .15s;
+  -webkit-appearance:none;
+}
+.inp:focus { border-color:var(--green); }
+select.inp { appearance:none; -webkit-appearance:none; }
+textarea.inp { resize:none; }
+
+/* ── 標籤文字 ── */
+.field-lbl { font-size:13px; font-weight:700; color:#6b7280; margin-bottom:6px; }
+
+/* ── 按鈕 ── */
+.btn { border:none; border-radius:12px; font-weight:700; font-family:inherit; cursor:pointer; transition:all .12s; -webkit-appearance:none; }
+.btn:active { transform:scale(.97); opacity:.85; }
+.btn-g  { background:var(--green); color:#fff; }
+.btn-a  { background:var(--amber); color:#fff; }
+.btn-gh { background:#f5f4f0; color:#44403c; border:1px solid #e5e2db; }
+.btn-r  { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+.btn-b  { background:#1d4ed8; color:#fff; }
+.btn-p  { background:#7c3aed; color:#fff; }
+/* 尺寸 */
+.btn-sm { padding:8px 14px; font-size:13px; }
+.btn-md { padding:12px 18px; font-size:15px; }
+.btn-lg { padding:15px; font-size:16px; width:100%; border-radius:14px; }
+/* 儲存按鈕回饋動畫 */
+.btn-saved { background:#22c55e !important; }
+
+/* ── Tag/Pill ── */
+.tag { display:inline-flex; align-items:center; font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap; }
+.pill { padding:8px 16px; border-radius:999px; border:2px solid #e5e2db; background:#fafaf7; color:#78716c; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; -webkit-appearance:none; }
+.pill.on { border-color:var(--green); background:var(--green); color:#fff; }
+
+/* ── 橫條 ── */
+.bar { height:7px; border-radius:999px; background:#e5e2db; overflow:hidden; }
+.bar-fill { height:100%; border-radius:999px; }
+
+/* ── Sub-tabs ── */
+.stab-wrap { display:flex; background:#fff; border-radius:14px; padding:4px; border:1px solid #e5e2db; gap:3px; margin-bottom:14px; }
+.stab { flex:1; padding:9px 4px; border-radius:10px; font-size:12px; font-weight:700; color:#78716c; border:none; background:none; cursor:pointer; font-family:inherit; transition:all .15s; }
+.stab.on { background:var(--green); color:#fff; }
+.stab.am.on { background:var(--amber); color:#fff; }
+
+/* ── 成本大格 ── */
+.cg {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:16px 8px; border-radius:14px; border:2.5px solid #e5e2db;
+  background:#fafaf7; cursor:pointer; transition:all .15s; font-family:inherit; width:100%;
+}
+.cg.on { border-color:var(--c); background:var(--bg); }
+.cg .ico { font-size:28px; line-height:1; }
+.cg .lbl { font-size:13px; font-weight:900; color:#78716c; text-align:center; }
+.cg.on .lbl { color:var(--c); }
+.cg .desc { font-size:10px; color:#a8a29e; text-align:center; line-height:1.4; }
+.cg.on .desc { color:var(--c); opacity:.8; }
+
+/* ── 田區 plot-btn ── */
+.plot-btn { padding:8px 16px; border-radius:999px; border:2px solid #e5e2db; background:#fafaf7; color:#78716c; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
+.plot-btn.active { border-color:var(--green); background:var(--green); color:#fff; }
+
+/* cat-btn（舊版天氣等用到） */
+.cat-btn { display:flex; flex-direction:column; align-items:center; gap:5px; padding:12px 6px; border-radius:12px; border:2px solid #e5e2db; background:#fafaf7; cursor:pointer; transition:all .15s; font-family:inherit; }
+.cat-btn.active { border-color:var(--c); background:var(--bg); }
+.cat-btn span.lbl { font-size:12px; font-weight:800; color:#78716c; line-height:1.2; text-align:center; }
+.cat-btn.active span.lbl { color:var(--c); }
+
+/* date input 修正 */
+input[type=date] { -webkit-appearance:none; }
+input[type=date]::-webkit-calendar-picker-indicator { opacity:.5; width:20px; height:20px; }
+input[type=number]::-webkit-inner-spin-button { opacity:.5; }
+
+/* ── 捲動優化 ── */
+.modal-box::-webkit-scrollbar { display:none; }
+#content::-webkit-scrollbar { display:none; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px 8px">
+    <div>
+      <div style="font-size:9px;letter-spacing:3px;color:#86efac;opacity:.55">HONG PIN FARM</div>
+      <div style="font-size:18px;font-weight:900;color:#fff;font-family:Georgia,serif;line-height:1.1">鋐品農產行</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="text-align:right">
+        <div id="hToday" style="font-size:11px;color:#86efac;opacity:.7"></div>
+        <div id="hStat"  style="font-size:11px;color:#86efac;font-weight:700"></div>
+      </div>
+      <button onclick="openBackupModal()" style="background:rgba(255,255,255,.18);border:none;color:#d1fae5;font-size:11px;font-weight:700;padding:7px 12px;border-radius:10px;cursor:pointer;font-family:inherit;white-space:nowrap">💾 備份</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+  <div id="page-dashboard" class="hide"></div>
+  <div id="page-farm"      class="hide"></div>
+  <div id="page-process"   class="hide"></div>
+  <div id="page-reports"   class="hide"></div>
+  <div id="page-sop"       class="hide"></div>
+</div>
+
+<!-- 底部導覽列 -->
+<div id="bottom-nav">
+  <button class="bnav-btn" id="mtab-dashboard" onclick="switchMain('dashboard')">
+    <span class="bico">🏠</span><span class="blbl">總覽</span>
+  </button>
+  <button class="bnav-btn" id="mtab-farm" onclick="switchMain('farm')">
+    <span class="bico">🌾</span><span class="blbl">種植</span>
+  </button>
+  <button class="bnav-btn" id="mtab-process" onclick="switchMain('process')">
+    <span class="bico">📦</span><span class="blbl">運營</span>
+  </button>
+  <button class="bnav-btn" id="mtab-reports" onclick="switchMain('reports')">
+    <span class="bico">📒</span><span class="blbl">報表</span>
+  </button>
+  <button class="bnav-btn" id="mtab-sop" onclick="switchMain('sop')">
+    <span class="bico">📋</span><span class="blbl">SOP</span>
+  </button>
+</div>
+
+<!-- MODAL -->
+<div id="modalBg" class="modal-bg hide" onclick="closeModal(event)">
+  <div class="modal-box" id="modalBox"></div>
+</div>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════
+   常數
+═══════════════════════════════════════════════ */
+const PLOT_TYPES = [
+  {id:'self',    label:'自種田', icon:'🌾', color:'#15803d', bg:'#dcfce7'},
+  {id:'managed', label:'代管田', icon:'🤝', color:'#0369a1', bg:'#dbeafe'},
+  {id:'bought',  label:'收購田', icon:'💼', color:'#7c3aed', bg:'#ede9fe'},
+];
+// 作業大分類（登錄時選這四個）
+const COST_GROUPS = [
+  { id:'labor',  label:'人事成本', icon:'👷', color:'#1d4ed8', bg:'#dbeafe',
+    desc:'工資・採收人工・噴藥工', cats:['labor'] },
+  { id:'agri',   label:'農資成本', icon:'🌿', color:'#15803d', bg:'#dcfce7',
+    desc:'農藥・肥料・種苗・生物資材', cats:['spray','fertilize'] },
+  { id:'supply', label:'耗材成本', icon:'📦', color:'#7c3aed', bg:'#ede9fe',
+    desc:'繩子・膠帶・紙箱・油錢・冰磚', cats:['ridge','irrigate'] },
+  { id:'land',   label:'土地成本', icon:'🏡', color:'#92400e', bg:'#fef9ee',
+    desc:'地租・購地・土地攤提', cats:['other'] },
+];
+const FARM_CATS = [
+  {id:'spray',     label:'噴藥',  icon:'💧', color:'#0891b2', bg:'#cffafe'},
+  {id:'fertilize', label:'施肥',  icon:'🌿', color:'#16a34a', bg:'#dcfce7'},
+  {id:'labor',     label:'人工',  icon:'👷', color:'#d97706', bg:'#fef3c7'},
+  {id:'ridge',     label:'培土',  icon:'⛏️', color:'#92400e', bg:'#fef9ee'},
+  {id:'irrigate',  label:'灌溉',  icon:'🚿', color:'#1d4ed8', bg:'#dbeafe'},
+  {id:'other',     label:'其他',  icon:'📋', color:'#6b7280', bg:'#f3f4f6'},
+];
+const PROC_CATS = [
+  {id:'harvest_labor', label:'採收人工',   icon:'🧑‍🌾', color:'#15803d', bg:'#dcfce7'},
+  {id:'supply_pack',   label:'耗材＋包裝', icon:'📦',  color:'#7c3aed', bg:'#ede9fe'},
+  {id:'tie_cost',      label:'綁蔥成本',   icon:'🧅',  color:'#d97706', bg:'#fef3c7'},
+  {id:'manpower',      label:'人力成本',   icon:'👥',  color:'#0369a1', bg:'#dbeafe'},
+  {id:'fuel',          label:'油',         icon:'⛽',  color:'#b45309', bg:'#fef3c7'},
+  {id:'utility',       label:'水電',       icon:'💡',  color:'#0891b2', bg:'#ecfeff'},
+  {id:'misc',          label:'其他雜項',   icon:'📋',  color:'#6b7280', bg:'#f3f4f6'},
+];
+const SALE_PRODS = [
+  {id:'1kg',   label:'1公斤包裝',     icon:'📦'},
+  {id:'3kg',   label:'3公斤包裝',     icon:'📦'},
+  {id:'trace', label:'產銷履歷蔥',    icon:'🏷️'},
+  {id:'black', label:'黑頭蔥（整捆）',icon:'🧅'},
+  {id:'other', label:'其他加工品',    icon:'🔖'},
+];
+const CHANNELS = [
+  {id:'market',     label:'傳統市場/行口'},
+  {id:'auction',    label:'拍賣市場'},
+  {id:'restaurant', label:'餐廳/企業'},
+  {id:'direct',     label:'直銷/自售'},
+  {id:'online',     label:'網路通路'},
+  {id:'other',      label:'其他'},
+];
+
+/* ═══════════════════════════════════════════════
+   資料 (localStorage)
+═══════════════════════════════════════════════ */
+const LS_K = {plots:'hp6_plots', ops:'hp6_ops', agri:'hp6_agri', proc:'hp6_proc', sales:'hp6_sales', weather:'hp6_weather'};
+let DB = {
+  plots: [], ops: [], agri: [], proc: [], sales: [], weather: []
+};
+function loadDB() {
+  for (const k in LS_K) {
+    try { DB[k] = JSON.parse(localStorage.getItem(LS_K[k])) || []; } catch { DB[k] = []; }
+  }
+}
+function saveDB() {
+  for (const k in LS_K) {
+    try { localStorage.setItem(LS_K[k], JSON.stringify(DB[k])); } catch {}
+  }
+}
+loadDB();
+
+/* ═══════════════════════════════════════════════
+   工具
+═══════════════════════════════════════════════ */
+const uid   = () => Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const today = () => new Date().toISOString().slice(0,10);
+const fmt   = n  => Math.round(Number(n)||0).toLocaleString('zh-TW');
+const fmtD  = n  => (Number(n)||0).toFixed(1);
+const dayDiff = a => a ? Math.floor((Date.now()-new Date(a))/86400000) : null;
+const mLabel  = ym => { const [y,m]=ym.split('-'); return `${y}/${m}`; };
+const catOf   = (list,id) => list.find(c=>c.id===id)||list[list.length-1];
+const ptOf    = id => PLOT_TYPES.find(t=>t.id===id)||PLOT_TYPES[0];
+const esc     = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const H = (strings,...vals) => strings.reduce((a,s,i)=>a+s+(vals[i]!==undefined?esc(String(vals[i])):''),'');
+
+function tagHTML(label, color, bg) {
+  return `<span class="tag" style="color:${color};background:${bg}">${esc(label)}</span>`;
+}
+
+/* 每田區分攤後成本 */
+function plotFarmCost(pid) {
+  return DB.ops.filter(o=>{
+    const ids = Array.isArray(o.plotIds) ? o.plotIds : [o.plotId].filter(Boolean);
+    return ids.includes(pid);
+  }).reduce((s,o)=>s+(o.perPlotAmt??o.amount),0) + (DB.plots.find(p=>p.id===pid)?.landCost||0);
+}
+function plotMeta(p) {
+  const myOps = DB.ops.filter(o=>{ const ids=Array.isArray(o.plotIds)?o.plotIds:[o.plotId].filter(Boolean); return ids.includes(p.id); });
+  const lastSpray = myOps.filter(o=>o.cat==='spray').sort((a,b)=>b.date.localeCompare(a.date))[0]?.date||null;
+  const lastFert  = myOps.filter(o=>o.cat==='fertilize').sort((a,b)=>b.date.localeCompare(a.date))[0]?.date||null;
+  const cost = myOps.reduce((s,o)=>s+(o.perPlotAmt??o.amount),0)+(p.landCost||0);
+  const area = parseFloat(p.area)||0;
+  return { lastSpray, lastFert, cost, days:dayDiff(p.plantDate), costPerFen: area>0?Math.round(cost/area):null };
+}
+
+/* ═══════════════════════════════════════════════
+   Modal
+═══════════════════════════════════════════════ */
+function openModal(html) {
+  document.getElementById('modalBox').innerHTML = html;
+  document.getElementById('modalBg').classList.remove('hide');
+  document.getElementById('modalBox').scrollTop = 0;
+}
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modalBg')) {
+    document.getElementById('modalBg').classList.add('hide');
+  }
+}
+window._closeModal = () => document.getElementById('modalBg').classList.add('hide');
+
+/* ═══════════════════════════════════════════════
+   Main Tab 切換
+═══════════════════════════════════════════════ */
+let currentMain = 'dashboard';
+function switchMain(tab) {
+  currentMain = tab;
+  ['dashboard','farm','process','reports','sop'].forEach(t => {
+    document.getElementById('page-'+t).classList.add('hide');
+    document.getElementById('mtab-'+t).classList.remove('on');
+  });
+  document.getElementById('page-'+tab).classList.remove('hide');
+  document.getElementById('mtab-'+tab).classList.add('on');
+  renderAll();
+}
+
+/* ═══════════════════════════════════════════════
+   Sub Tab 狀態
+═══════════════════════════════════════════════ */
+let farmSub = 'plots';   // plots | ops | calendar
+let procSub = 'cost';    // cost | sales | channel
+let calYm   = today().slice(0,7);
+let opSelectedPlots = [];
+let opCat = '';
+let opCostGroup = ''; // new: top-level cost group
+let procCat = '';
+let saleMode = 'single';
+let saleProd = '';
+let saleChan = '';
+let agriTab = 'list';
+let agriUseItem = null;
+
+/* ═══════════════════════════════════════════════
+   全域 renderAll
+═══════════════════════════════════════════════ */
+function renderAll() {
+  // header stat
+  document.getElementById('hToday').textContent = today();
+  const act = DB.plots.filter(p=>!p.closed&&!p.sold).length;
+  document.getElementById('hStat').textContent = `${act} 田區 · ${DB.sales.length} 筆銷售`;
+
+  if (currentMain === 'dashboard') renderDash();
+  if (currentMain === 'farm')      renderFarm();
+  if (currentMain === 'process')   renderProc();
+  if (currentMain === 'reports')   renderReports();
+  if (currentMain === 'sop')       renderSOP();
+}
+
+/* ════════════════════════════════════════════════════════
+   ██████  DASHBOARD
+════════════════════════════════════════════════════════ */
+function renderDash() {
+  const farmCost  = DB.ops.reduce((s,o)=>s+o.amount,0)+DB.plots.reduce((s,p)=>s+(p.landCost||0),0);
+  const procCost  = DB.proc.reduce((s,o)=>s+o.amount,0);
+  const totalRev  = DB.sales.reduce((s,x)=>s+x.revenue,0);
+  const procProfit= totalRev-procCost;
+  const totalProfit = totalRev-farmCost-procCost;
+  const actPlots  = DB.plots.filter(p=>!p.closed&&!p.sold);
+  const clr = totalProfit>=0?'#86efac':'#fca5a5';
+
+  // monthly
+  const monthly = {};
+  DB.ops.forEach(o=>{if(o.date){const k=o.date.slice(0,7);if(!monthly[k])monthly[k]={farm:0,proc:0,rev:0};monthly[k].farm+=o.amount;}});
+  DB.proc.forEach(o=>{if(o.date){const k=o.date.slice(0,7);if(!monthly[k])monthly[k]={farm:0,proc:0,rev:0};monthly[k].proc+=o.amount;}});
+  DB.sales.forEach(s=>{const d=s.date||s.dateFrom;if(d){const k=d.slice(0,7);if(!monthly[k])monthly[k]={farm:0,proc:0,rev:0};monthly[k].rev+=s.revenue;}});
+  const monthlyRows = Object.entries(monthly).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,5);
+
+  let html = `
+  <!-- 主損益卡 -->
+  <div class="rounded-3xl p-5 text-white mb-4 relative overflow-hidden" style="background:linear-gradient(135deg,#052e16 0%,#14532d 60%,#166534 100%)">
+    <div class="text-xs tracking-widest opacity-60 mb-1">鋐品農產行 · 全場</div>
+    <div class="text-xs font-bold opacity-70 mb-0.5">全場累計淨損益</div>
+    <div class="text-4xl font-black mb-1" style="font-family:Georgia,serif;color:${clr}">${totalProfit>=0?'＋':'－'} NT$${fmt(Math.abs(totalProfit))}</div>
+    <div class="text-xs opacity-50 mb-4">收入 − 種植成本 − 運營成本</div>
+    <div class="grid grid-cols-3 gap-2">
+      ${[['種植成本',farmCost,'#fca5a5'],['運營成本',procCost,'#fdba74'],['總收入',totalRev,'#86efac']].map(([l,v,c])=>`
+      <div style="background:rgba(255,255,255,.1);border-radius:12px;padding:8px 6px;text-align:center">
+        <div style="font-size:10px;opacity:.7">${l}</div>
+        <div style="font-weight:900;font-size:13px;color:${c}">NT$${fmt(v)}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- 快速入口 -->
+  <div class="grid grid-cols-2 gap-3 mb-4">
+    <button onclick="switchMain('farm')" class="btn btn-g text-left p-4 rounded-2xl">
+      <div style="font-size:24px;margin-bottom:4px">🌾</div>
+      <div class="font-black text-sm">種植管理</div>
+      <div class="text-xs opacity-70">${actPlots.length} 田區運作中</div>
+    </button>
+    <button onclick="switchMain('process')" class="btn btn-a text-left p-4 rounded-2xl">
+      <div style="font-size:24px;margin-bottom:4px">📦</div>
+      <div class="font-black text-sm">加工與銷售</div>
+      <div class="text-xs opacity-70">NT$${fmt(totalRev)} 累計收入</div>
+    </button>
+  </div>
+
+  <!-- 種植帳目 -->
+  <div style="border-radius:16px;border:2px solid #bbf7d0;overflow:hidden;margin-bottom:12px">
+    <div style="background:#166534;color:#fff;padding:10px 16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="font-black text-sm">🌾 種植管理帳目</div>
+        <div style="font-size:11px;opacity:.85">總成本 NT$${fmt(farmCost)}</div>
+      </div>
+      ${(()=>{
+        const ap = DB.plots.filter(p=>!p.closed&&!p.sold);
+        const areaByType = {};
+        PLOT_TYPES.forEach(t=>{ areaByType[t.id]=0; });
+        ap.forEach(p=>{ const a=parseFloat(p.area)||0; if(areaByType[p.type]!==undefined) areaByType[p.type]+=a; });
+        const totalArea = ap.reduce((s,p)=>s+(parseFloat(p.area)||0),0);
+        if(!totalArea) return '';
+        return `<div style="display:flex;flex-wrap:wrap;gap:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.2)">
+          <div style="background:rgba(255,255,255,.15);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700">
+            📐 合計 <span style="font-size:14px;font-weight:900">${totalArea}</span> 分地
+          </div>
+          ${PLOT_TYPES.map(t=>areaByType[t.id]>0?`<div style="background:rgba(255,255,255,.1);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;opacity:.9">${t.icon} ${t.label} ${areaByType[t.id]} 分</div>`:'').join('')}
+        </div>`;
+      })()}
+    </div>
+    <div style="background:#fff;padding:12px">
+      ${actPlots.length===0?'<div style="text-align:center;color:#a8a29e;padding:16px;font-size:13px">尚無進行中田區</div>':
+        actPlots.map(p=>{
+          const m=plotMeta(p); const pt=ptOf(p.type);
+          const tkn=(p.harvests||[]).reduce((s,h)=>s+h.kg,0);
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f4">
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                <span style="font-weight:700;font-size:14px">${esc(p.name)}</span>
+                ${tagHTML(pt.icon+' '+pt.label, pt.color, pt.bg)}
+                ${p.traceability?tagHTML('🏷️ 履歷','#7c3aed','#ede9fe'):''}
+              </div>
+              <div style="font-size:11px;color:#a8a29e;margin-top:2px">${m.days!==null?`第${m.days}天`:''}${p.area?` · ${p.area}分地`:''}${tkn>0?` · 已收${fmt(tkn)}kg`:''}</div>
+            </div>
+            <div style="text-align:right;margin-left:8px;flex-shrink:0">
+              <div style="font-weight:900;color:#dc2626;font-size:13px">NT$${fmt(m.cost)}</div>
+              ${m.costPerFen!==null?`<div style="font-size:10px;color:#a8a29e">≈${fmt(m.costPerFen)}/分</div>`:''}
+            </div>
+          </div>`;
+        }).join('')
+      }
+    </div>
+  </div>
+
+  <!-- 加工銷售帳目 -->
+  <div style="border-radius:16px;border:2px solid #fde68a;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)">
+    <div style="background:#d97706;color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="font-black text-sm">📦 加工銷售帳目</div>
+        <div style="font-size:11px;opacity:.8">獨立於種植成本</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;opacity:.8">加工損益</div>
+        <div style="font-weight:900;font-size:18px;color:${procProfit>=0?'#d1fae5':'#fee2e2'}">${procProfit>=0?'▲':'▼'} NT$${fmt(Math.abs(procProfit))}</div>
+      </div>
+    </div>
+    <div style="background:#fff;padding:16px">
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        ${[['運營成本',procCost,'#dc2626','#fef2f2'],['銷售收入',totalRev,'#16a34a','#f0fdf4'],['加工損益',procProfit,procProfit>=0?'#16a34a':'#dc2626',procProfit>=0?'#f0fdf4':'#fef2f2']].map(([l,v,tc,bg])=>`
+        <div style="background:${bg};border-radius:12px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:#6b7280">${l}</div>
+          <div style="font-weight:900;font-size:13px;color:${tc}">NT$${fmt(Math.abs(v))}</div>
+        </div>`).join('')}
+      </div>
+      ${DB.proc.length>0?`<div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:6px">運營成本結構</div>
+      ${PROC_CATS.map(c=>{const a=DB.proc.filter(o=>o.cat===c.id).reduce((s,o)=>s+o.amount,0);if(!a)return'';const pct=procCost>0?Math.round(a/procCost*100):0;return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="color:${c.color};font-size:11px;font-weight:700;width:76px;flex-shrink:0">${c.icon} ${c.label}</span><div class="bar" style="flex:1"><div class="bar-fill" style="width:${pct}%;background:${c.color}"></div></div><span style="font-size:11px;font-weight:700;color:#374151;width:52px;text-align:right;flex-shrink:0">NT$${fmt(a)}</span></div>`;}).join('')}`:''}
+    </div>
+  </div>
+
+  <!-- 月損益 -->
+  ${monthlyRows.length>0?`<div class="card p-4">
+    <div class="font-black text-stone-700 mb-3" style="font-family:serif">📅 近 5 個月損益</div>
+    ${monthlyRows.map(([ym,{farm,proc,rev}])=>{const pl=rev-farm-proc;return`<div style="padding:6px 0;border-bottom:1px solid #f5f5f4">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:700;font-size:14px;color:#44403c">${mLabel(ym)}</div>
+        <div style="font-weight:900;font-size:13px;color:${pl>=0?'#16a34a':'#dc2626'}">${pl>=0?'▲':'▼'} NT$${fmt(Math.abs(pl))}</div>
+      </div>
+      <div style="font-size:11px;color:#a8a29e;margin-top:2px">種植 NT$${fmt(farm)} · 加工 NT$${fmt(proc)} · <span style="color:#16a34a">收入 NT$${fmt(rev)}</span></div>
+    </div>`;}).join('')}
+  </div>`:''}`;
+
+  document.getElementById('page-dashboard').innerHTML = html;
+}
+
+/* ════════════════════════════════════════════════════════
+   ██████  FARM
+════════════════════════════════════════════════════════ */
+function renderFarm() {
+  let html = `
+  <div class="stab-wrap">
+    ${[['plots','🌾 田區'],['ops','✍️ 作業'],['weather','🌤️ 天氣'],['calendar','📅 行事曆']].map(([k,l])=>`
+    <button onclick="setFarmSub('${k}')" id="fsub-${k}" class="flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${farmSub===k?'stab on':'text-stone-500'}">${l}</button>`).join('')}
+  </div>`;
+
+  if (farmSub === 'plots')    html += farmPlotsHTML();
+  if (farmSub === 'ops')      html += farmOpsHTML();
+  if (farmSub === 'weather')  html += farmWeatherHTML();
+  if (farmSub === 'calendar') html += farmCalHTML();
+
+  document.getElementById('page-farm').innerHTML = html;
+}
+function setFarmSub(s){ farmSub=s; renderFarm(); }
+
+/* ── 田區列表 ── */
+function farmPlotsHTML() {
+  let h = `<button onclick="openPlotModal(null)" class="btn btn-g w-full py-3 rounded-2xl font-bold mb-3" style="border:2px dashed #4ade80;background:#f0fdf4;color:#166534">＋ 新增田區</button>`;
+  if (!DB.plots.length) h += `<div style="text-align:center;color:#a8a29e;padding:32px;font-size:13px">尚無田區，請新增</div>`;
+  DB.plots.forEach(p=>{
+    const m=plotMeta(p); const pt=ptOf(p.type);
+    const tkn=(p.harvests||[]).reduce((s,h)=>s+h.kg,0);
+    const tbn=(p.harvests||[]).reduce((s,h)=>s+h.bundles,0);
+    const bl = p.sold?'#9ca3af':p.closed?'#d6d3d1':pt.color;
+    h += `<div class="card p-4 mb-3 ${p.closed||p.sold?'opacity-65':''}" style="border-left:4px solid ${bl}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:4px">
+            <span style="font-weight:900;font-size:16px;font-family:serif">${esc(p.name)}</span>
+            ${tagHTML(pt.icon+' '+pt.label, pt.color, pt.bg)}
+            ${p.traceability?tagHTML('🏷️ 產銷履歷','#7c3aed','#ede9fe'):''}
+            ${p.sold?tagHTML('💰 已賣出','#6b7280','#f3f4f6'):''}
+            ${p.closed&&!p.sold?tagHTML('結案','#6b7280','#f3f4f6'):''}
+          </div>
+          <div style="font-size:12px;color:#78716c;line-height:1.7">
+            ${p.area?`面積：${esc(p.area)} 分地&nbsp;&nbsp;`:''}${m.days!==null?`種植第 ${m.days} 天`:''}${p.area&&m.days!==null?'':''}<br>
+            ${m.lastSpray?`最後噴藥：${m.lastSpray}<br>`:''}
+            ${m.lastFert?`最後施肥：${m.lastFert}<br>`:''}
+            ${p.harvestDate?`預計採收：${esc(p.harvestDate)}<br>`:''}
+            ${tkn>0?`<span style="color:#16a34a;font-weight:700">已採收：${tbn>0?fmt(tbn)+'捆 · ':''}共 ${fmt(tkn)} kg</span>`:''}
+          </div>
+          ${p.traceNote?`<div style="margin-top:6px;font-size:11px;color:#7c3aed;background:#ede9fe;border-radius:8px;padding:6px 10px">📋 ${esc(p.traceNote)}</div>`:''}
+        </div>
+        <div style="text-align:right;margin-left:8px;flex-shrink:0">
+          <div style="font-size:11px;color:#a8a29e">種植成本</div>
+          <div style="font-weight:900;color:#dc2626">NT$${fmt(m.cost)}</div>
+          ${m.costPerFen!==null?`<div style="font-size:10px;color:#a8a29e">≈NT$${fmt(m.costPerFen)}/分</div>`:''}
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;padding-top:8px;border-top:1px solid #f5f5f4">
+        <button onclick="openDetailModal('${p.id}')" class="btn btn-gh btn-sm">詳情</button>
+        <button onclick="openPlotModal('${p.id}')" class="btn btn-gh btn-sm">編輯</button>
+        <button onclick="openHarvestModal('${p.id}')" class="btn btn-g btn-sm">登採收</button>
+        ${!p.sold?`<button onclick="openSellPlotModal('${p.id}')" class="btn btn-b btn-sm">賣出田</button>`:''}
+        <button onclick="toggleClosePlot('${p.id}')" class="btn btn-gh btn-sm">${p.closed?'重開':'結案'}</button>
+        <button onclick="delPlot('${p.id}')" class="btn btn-r btn-sm">刪除</button>
+      </div>
+    </div>`;
+  });
+  return h;
+}
+
+/* ── 作業登錄 ── */
+function farmOpsHTML() {
+  const actPlots = DB.plots.filter(p=>!p.closed&&!p.sold);
+  const totalAmt = parseFloat(document.getElementById?.('opAmt')?.value||'0')||0;
+  const perPlot  = opSelectedPlots.length ? Math.round(totalAmt/opSelectedPlots.length) : totalAmt;
+
+  // ── 四大成本群組大按鈕 ──
+  const groupBtns = COST_GROUPS.map(g => {
+    const active = opCostGroup === g.id;
+    return `<button onclick="setOpGroup('${g.id}')"
+      style="display:flex;flex-direction:column;align-items:flex-start;padding:12px 14px;border-radius:14px;border:2.5px solid ${active?g.color:'#e7e5e4'};background:${active?g.bg:'#fafaf9'};cursor:pointer;font-family:inherit;text-align:left;transition:all .15s">
+      <div style="font-size:24px;margin-bottom:4px">${g.icon}</div>
+      <div style="font-size:13px;font-weight:900;color:${active?g.color:'#44403c'}">${g.label}</div>
+      <div style="font-size:10px;color:${active?g.color:'#a8a29e'};margin-top:2px;line-height:1.4">${g.desc}</div>
+      ${active?`<div style="margin-top:6px;width:100%;height:3px;border-radius:2px;background:${g.color}"></div>`:''}
+    </button>`;
+  }).join('');
+
+  // ── 作業細項（在選了群組後顯示） ──
+  let subCatRow = '';
+  if (opCostGroup) {
+    const grp = COST_GROUPS.find(g=>g.id===opCostGroup);
+    // 農資群組顯示噴藥/施肥；其他群組僅1個細項
+    const subCats = FARM_CATS.filter(c => grp.cats.includes(c.id));
+    if (subCats.length > 1) {
+      subCatRow = `<div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:6px">作業細項</div>
+        <div style="display:flex;gap:8px">
+          ${subCats.map(c=>{
+            const a=opCat===c.id;
+            return `<button onclick="setOpCat('${c.id}')"
+              style="flex:1;padding:8px;border-radius:12px;border:2px solid ${a?c.color:'#e7e5e4'};background:${a?c.bg:'#fafaf9'};font-family:inherit;cursor:pointer">
+              <div style="font-size:18px">${c.icon}</div>
+              <div style="font-size:12px;font-weight:700;color:${a?c.color:'#78716c'}">${c.label}</div>
+            </button>`;
+          }).join('')}
+        </div>
+      </div>`;
+    } else if (subCats.length===1 && opCat !== subCats[0].id) {
+      // auto-select single sub-cat
+      setTimeout(()=>{ opCat=subCats[0].id; },0);
+    }
+  }
+
+  let plotBtns = actPlots.length===0
+    ? `<div style="font-size:13px;color:#92400e;background:#fef3c7;border-radius:12px;padding:10px 14px">請先新增田區</div>`
+    : `<div style="display:flex;flex-wrap:wrap;gap:8px">${actPlots.map(p=>{
+        const active=opSelectedPlots.includes(p.id);
+        const pt=ptOf(p.type);
+        return `<button onclick="toggleOpPlot('${p.id}')"
+          style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;border:2px solid ${active?pt.color:'#e7e5e4'};background:${active?pt.bg:'#fafaf9'};cursor:pointer;font-family:inherit">
+          <span style="font-size:11px;font-weight:700;color:${active?pt.color:'#78716c'}">${active?'✓ ':''}${esc(p.name)}</span>
+          <span style="font-size:9px;color:${active?pt.color:'#a8a29e'}">${pt.icon}${pt.label.replace('田','')}</span>
+        </button>`;
+      }).join('')}</div>`;
+
+  let splitPreview = '';
+  if (opSelectedPlots.length > 0 && totalAmt > 0) {
+    splitPreview = `<div style="background:#f5f5f4;border:1px solid #e7e5e4;border-radius:12px;padding:12px">
+      <div style="font-size:11px;font-weight:900;color:#57534e;margin-bottom:6px">📊 成本分攤預覽</div>
+      ${opSelectedPlots.map(pid=>{
+        const pl=DB.plots.find(x=>x.id===pid);
+        const area=parseFloat(pl?.area)||0;
+        const cpf=area>0?Math.round(perPlot/area):null;
+        return `<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+          <span style="font-weight:700">${esc(pl?.name||'?')}</span>
+          <span>NT$${fmt(perPlot)}${cpf!==null?` <span style="color:#a8a29e">（${fmt(cpf)}/分地）</span>`:''}</span></div>`;
+      }).join('')}
+      ${opSelectedPlots.length>1?`<div style="font-size:11px;color:#a8a29e;border-top:1px solid #e7e5e4;padding-top:6px;margin-top:3px">合計 NT$${fmt(totalAmt)}，每田 NT$${fmt(perPlot)}</div>`:''}
+    </div>`;
+  }
+
+  const recentOps = DB.ops.slice(0,8);
+  let recentHTML = '';
+  if (recentOps.length) {
+    recentHTML = `<div class="card p-4 mt-4"><div style="font-weight:700;font-size:13px;color:#57534e;margin-bottom:8px">最近 8 筆作業</div>`;
+    recentOps.forEach(o=>{
+      const pids=Array.isArray(o.plotIds)?o.plotIds:[o.plotId].filter(Boolean);
+      const names=pids.map(id=>DB.plots.find(p=>p.id===id)?.name||'?').join('、');
+      const c=catOf(FARM_CATS,o.cat);
+      const grp=COST_GROUPS.find(g=>g.cats.includes(o.cat))||COST_GROUPS[3];
+      recentHTML+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f5f5f4">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:2px">
+            ${tagHTML(grp.icon+' '+grp.label, grp.color, grp.bg)}
+            ${tagHTML(c.icon+' '+c.label, c.color, c.bg)}
+            <span style="font-size:11px;color:#a8a29e">${esc(names)}${pids.length>1?` <b style="color:#2563eb">×${pids.length}田</b>`:''}</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:#292524;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(o.product)}</div>
+          <div style="font-size:11px;color:#a8a29e">${o.date}${o.qty?` · ${esc(o.qty)}`:''}${pids.length>1?` · 每田NT$${fmt(o.perPlotAmt)}`:''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:8px;flex-shrink:0">
+          <div style="text-align:right"><div style="font-weight:900;color:#dc2626;font-size:13px">NT$${fmt(o.amount)}</div></div>
+          <button onclick="delOp('${o.id}')" style="color:#d6d3d1;font-size:12px;background:none;border:none;cursor:pointer">✕</button>
+        </div>
+      </div>`;
+    });
+    recentHTML += `</div>`;
+  }
+
+  return `<div class="card p-4">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-weight:900;font-size:16px;font-family:serif">✍️ 田間作業登錄</div>
+      <button onclick="openAgriModal()" class="btn btn-p btn-sm">🧪 農資庫</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <!-- ①日期 -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">日期 <span style="color:#ef4444">*</span></div>
+        <input class="inp" type="date" id="opDate" value="${today()}">
+      </div>
+
+      <!-- ②四大成本群組 -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:8px">成本類型 <span style="color:#ef4444">*</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${groupBtns}</div>
+      </div>
+
+      <!-- ③作業細項（農資才有） -->
+      ${subCatRow}
+
+      <!-- ④田區多選 -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:6px">田區（可多選，費用平均分攤）<span style="color:#ef4444"> *</span></div>
+        ${plotBtns}
+        ${opSelectedPlots.length>1?`<div style="margin-top:6px;font-size:12px;color:#1d4ed8;background:#dbeafe;border-radius:10px;padding:6px 12px;font-weight:600">已選 ${opSelectedPlots.length} 個田區，費用將平均分攤</div>`:''}
+      </div>
+
+      <!-- ⑤品名 -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">品名/項目 <span style="color:#ef4444">*</span></div>
+        <input class="inp" type="text" id="opProduct" placeholder="${opCostGroup==='labor'?'例：拔蔥工資、噴藥工資':opCostGroup==='agri'?'例：陶斯松、亞磷酸鉀':opCostGroup==='supply'?'例：紙箱、膠帶、冰磚、油錢':'例：地租、購地款'}">
+      </div>
+
+      <!-- ⑥金額 + 用量 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">總費用（元）<span style="color:#ef4444"> *</span></div>
+          <input class="inp" type="number" id="opAmt" placeholder="0" oninput="updateSplit()">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">用量</div>
+          <input class="inp" type="text" id="opQty" placeholder="20kg、5L、3人">
+        </div>
+      </div>
+      <div id="splitPreviewArea">${splitPreview}</div>
+
+      <!-- ⑦備註 -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">備註</div>
+        <textarea class="inp" id="opNote" rows="2" placeholder="補充說明"></textarea>
+      </div>
+
+      <button id="opSaveBtn" onclick="saveOp()" class="btn btn-g btn-lg">儲存作業記錄</button>
+    </div>
+  </div>${recentHTML}`;
+}
+
+function setOpGroup(g) {
+  opCostGroup = opCostGroup===g ? '' : g;
+  // auto-assign cat for single-cat groups
+  const grp = COST_GROUPS.find(x=>x.id===g);
+  if (grp && grp.cats.length===1) opCat = grp.cats[0];
+  else if (opCostGroup!==g) opCat='';
+  renderFarm();
+}
+function setOpCat(c){ opCat=c; renderFarm(); }
+function updateSplit(){
+  const area = document.getElementById('splitPreviewArea');
+  if(!area) return;
+  const amt = parseFloat(document.getElementById('opAmt')?.value||'0')||0;
+  const pct = opSelectedPlots.length||1;
+  const per = Math.round(amt/pct);
+  if(!opSelectedPlots.length){area.innerHTML='';return;}
+  area.innerHTML=`<div style="background:#f5f5f4;border:1px solid #e7e5e4;border-radius:12px;padding:12px">
+    <div style="font-size:11px;font-weight:900;color:#57534e;margin-bottom:6px">📊 成本分攤預覽</div>
+    ${opSelectedPlots.map(pid=>{const pl=DB.plots.find(x=>x.id===pid);const ar=parseFloat(pl?.area)||0;const cpf=ar>0?Math.round(per/ar):null;return`<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="font-weight:700">${esc(pl?.name||'?')}</span><span>NT$${fmt(per)}${cpf!==null?` <span style="color:#a8a29e">（${fmt(cpf)}/分）</span>`:''}</span></div>`;}).join('')}
+    ${opSelectedPlots.length>1?`<div style="font-size:11px;color:#a8a29e;border-top:1px solid #e7e5e4;padding-top:6px;margin-top:3px">合計 NT$${fmt(amt)}，每田 NT$${fmt(per)}</div>`:''}
+  </div>`;
+}
+
+function saveOp(){
+  const product=document.getElementById('opProduct')?.value.trim();
+  if(!product){alert('請填寫品名/項目');return;}
+  const totalAmt=parseFloat(document.getElementById('opAmt')?.value)||0;
+
+  // opCat 自動補上
+  if(opCostGroup&&!opCat){
+    const grp=COST_GROUPS.find(g=>g.id===opCostGroup);
+    if(grp) opCat=grp.cats[0];
+  }
+
+  const plotIds=opSelectedPlots.length?opSelectedPlots.slice():[];
+  const perPlotAmt=plotIds.length?Math.round(totalAmt/plotIds.length):totalAmt;
+
+  DB.ops.unshift({
+    id:uid(),
+    date:document.getElementById('opDate')?.value||today(),
+    plotIds, plotId:plotIds[0]||'',
+    costGroup:opCostGroup||'other',
+    cat:opCat||opCostGroup||'other',
+    product, amount:totalAmt, perPlotAmt,
+    qty:document.getElementById('opQty')?.value||'',
+    note:document.getElementById('opNote')?.value||'',
+  });
+  saveDB();
+  opCat=''; opCostGroup='';
+  const btn=document.getElementById('opSaveBtn');
+  if(btn){ btn.textContent='✓ 已儲存！'; btn.style.background='#22c55e'; }
+  setTimeout(()=>renderFarm(), 1500);
+}
+function delOp(id){ DB.ops=DB.ops.filter(o=>o.id!==id); saveDB(); renderFarm(); }
+
+/* ── 行事曆 ── */
+function farmCalHTML(){
+  const [y,m] = calYm.split('-').map(Number);
+  const firstDay = new Date(y,m-1,1).getDay();
+  const daysInMonth = new Date(y,m,0).getDate();
+  const todayStr = today();
+
+  const evMap = {};
+  const addEv = (ds,label,color,icon,type='') => {
+    if(!ds||!ds.startsWith(calYm)) return;
+    const d=parseInt(ds.slice(8,10));
+    if(!evMap[d]) evMap[d]=[];
+    evMap[d].push({label,color,icon,type});
+  };
+
+  // 田區里程碑
+  DB.plots.forEach(p=>{
+    addEv(p.plantDate, `${p.name} 種植`, '#15803d','🌱','milestone');
+    addEv(p.ridgeDate, `${p.name} 培土`, '#92400e','⛏️','milestone');
+    addEv(p.harvestDate,`${p.name} 採收`, '#d97706','🧺','milestone');
+  });
+  // 作業記錄
+  DB.ops.forEach(o=>{
+    if(!o.date?.startsWith(calYm)) return;
+    const d=parseInt(o.date.slice(8,10));
+    if(!evMap[d]) evMap[d]=[];
+    const grp=COST_GROUPS.find(g=>g.id===o.costGroup)||COST_GROUPS[0];
+    const pids=Array.isArray(o.plotIds)?o.plotIds:[o.plotId].filter(Boolean);
+    const pl=pids.length>1?`×${pids.length}田`:(DB.plots.find(p=>p.id===pids[0])?.name||'?');
+    evMap[d].push({label:`${pl} ${grp.label}`, color:grp.color, icon:grp.icon, type:'op'});
+  });
+  // 天氣
+  DB.weather.forEach(w=>{
+    if(!w.date?.startsWith(calYm)) return;
+    const d=parseInt(w.date.slice(8,10));
+    if(!evMap[d]) evMap[d]=[];
+    const wt=WEATHER_TYPES.find(t=>t.id===w.weather)||WEATHER_TYPES[0];
+    evMap[d].push({label:wt.label, color:wt.color, icon:wt.icon, type:'weather'});
+  });
+  // ★ SOP 排程事件
+  getSopCalEvents(calYm).forEach(ev=>{
+    const d=parseInt(ev.date.slice(8,10));
+    if(!evMap[d]) evMap[d]=[];
+    evMap[d].push({label:ev.label, color:ev.color, icon:ev.icon, type:'sop'});
+  });
+
+  const cells=[];
+  for(let i=0;i<firstDay;i++) cells.push(null);
+  for(let d=1;d<=daysInMonth;d++) cells.push(d);
+
+  let calRows='';
+  for(let i=0;i<cells.length;i+=7){
+    const row=cells.slice(i,i+7);
+    calRows+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px">`;
+    row.forEach(d=>{
+      if(!d){calRows+=`<div></div>`;return;}
+      const ds=`${calYm}-${String(d).padStart(2,'0')}`;
+      const evs=evMap[d]||[];
+      const isT=ds===todayStr;
+      const hasMilestone=evs.some(e=>e.type==='milestone');
+      const hasOp=evs.some(e=>e.type==='op');
+      const hasSop=evs.some(e=>e.type==='sop');
+      const bgCol = isT?'#f0fdf4': hasMilestone?'#fef9ee': hasSop?'#f5f3ff':'transparent';
+      const bdrCol = isT?'#16a34a': hasMilestone?'#d97706': hasSop?'#7c3aed':'transparent';
+      calRows+=`<div onclick="calDayClick('${ds}')"
+        style="min-height:52px;border-radius:8px;padding:2px;border:1.5px solid ${bdrCol};background:${bgCol};cursor:pointer;transition:background .1s"
+        title="${ds} — 點擊快速登錄作業">
+        <div style="font-size:11px;font-weight:700;text-align:center;margin-bottom:2px;color:${isT?'#16a34a':'#44403c'}">${d}</div>
+        ${evs.slice(0,2).map(e=>`<div style="font-size:8px;border-radius:3px;padding:1px 2px;overflow:hidden;white-space:nowrap;margin-bottom:1px;background:${e.color}22;color:${e.color};line-height:1.3">${e.icon}${esc(e.label)}</div>`).join('')}
+        ${evs.length>2?`<div style="font-size:8px;color:#a8a29e;text-align:center">+${evs.length-2}</div>`:''}
+        ${hasOp?`<div style="width:4px;height:4px;border-radius:50%;background:#dc2626;margin:1px auto 0"></div>`:''}
+      </div>`;
+    });
+    calRows+=`</div>`;
+  }
+
+  // 圖例
+  const legend = [
+    {color:'#16a34a',label:'今天'},
+    {color:'#d97706',label:'田區里程碑'},
+    {color:'#dc2626',label:'有作業記錄'},
+    {color:'#7c3aed',label:'SOP排程'},
+  ].map(l=>`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;color:#6b7280">
+    <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${l.color};opacity:.7"></span>${l.label}
+  </span>`).join('');
+
+  // 本月摘要
+  const thisMonthOps = DB.ops.filter(o=>o.date?.startsWith(calYm));
+  const opTotal = thisMonthOps.reduce((s,o)=>s+o.amount,0);
+  const opByGroup = {};
+  COST_GROUPS.forEach(g=>{ opByGroup[g.id]=thisMonthOps.filter(o=>o.costGroup===g.id||g.cats.includes(o.cat)).reduce((s,o)=>s+o.amount,0); });
+
+  return `
+  <!-- 月份摘要 -->
+  ${opTotal>0?`<div class="card p-3 mb-3">
+    <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px">${y}/${String(m).padStart(2,'0')} 月成本摘要　<b style="color:#dc2626">NT$${fmt(opTotal)}</b></div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px">
+      ${COST_GROUPS.map(g=>opByGroup[g.id]>0?`<div style="background:${g.bg};border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700;color:${g.color}">${g.icon} ${g.label} NT$${fmt(opByGroup[g.id])}</div>`:'').join('')}
+    </div>
+  </div>`:''}
+
+  <div class="card p-4">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <button onclick="shiftCal(-1)" style="width:32px;height:32px;border-radius:50%;background:#f5f5f4;border:none;cursor:pointer;font-size:16px">‹</button>
+      <div>
+        <div style="font-weight:900;font-family:serif;text-align:center">${y} 年 ${m} 月</div>
+        <div style="font-size:10px;color:#a8a29e;text-align:center;margin-top:2px">點日期 → 快速登錄作業</div>
+      </div>
+      <button onclick="shiftCal(1)" style="width:32px;height:32px;border-radius:50%;background:#f5f5f4;border:none;cursor:pointer;font-size:16px">›</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px">
+      ${['日','一','二','三','四','五','六'].map(w=>`<div style="text-align:center;font-size:10px;font-weight:700;color:#a8a29e;padding:3px">${w}</div>`).join('')}
+    </div>
+    ${calRows}
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #f5f5f4">${legend}</div>
+  </div>`;
+}
+function shiftCal(d){
+  const [y,m]=calYm.split('-').map(Number);
+  const nd=new Date(y,m-1+d,1);
+  calYm=`${nd.getFullYear()}-${String(nd.getMonth()+1).padStart(2,'0')}`;
+  renderFarm();
+}
+function calDayClick(ds){
+  // jump to ops tab with date pre-filled
+  farmSub='ops';
+  renderFarm();
+  setTimeout(()=>{
+    const el=document.getElementById('opDate');
+    if(el) el.value=ds;
+  },50);
+}
+
+/* ════════════════════════════════════════════════════════
+   ██████  FARM MODALS
+════════════════════════════════════════════════════════ */
+
+/* 新增/編輯田區 */
+function openPlotModal(pid){
+  const p = pid ? DB.plots.find(x=>x.id===pid) : null;
+  const v = (f,def='') => p ? (p[f]??def) : def;
+  openModal(`
+    <div style="font-weight:900;font-size:16px;font-family:serif;margin-bottom:16px">${p?'✏️ 編輯田區':'🌱 新增田區'}</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">田區名稱 *</div>
+        <input class="inp" id="pm_name" placeholder="例：西螺一號地" value="${esc(v('name'))}">
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">田區型態 *</div>
+        <div style="display:flex;gap:8px">
+          ${PLOT_TYPES.map(t=>`<button onclick="setPT('${t.id}')" id="pt_${t.id}" class="flex-1 py-2 rounded-xl border-2 text-xs font-bold transition-all" style="border-color:${v('type','self')===t.id?t.color:'#e7e5e4'};background:${v('type','self')===t.id?t.bg:'#fafaf9'};color:${v('type','self')===t.id?t.color:'#a8a29e'};cursor:pointer;font-family:inherit">${t.icon} ${t.label}</button>`).join('')}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">面積（分地）</div>
+          <input class="inp" id="pm_area" placeholder="3" value="${esc(v('area'))}">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">土地成本（元）</div>
+          <input class="inp" id="pm_landCost" type="number" placeholder="0" value="${v('landCost','')}">
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">種植日期</div>
+        <input class="inp" id="pm_plantDate" type="date" value="${v('plantDate',today())}">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">預計培土日</div>
+          <input class="inp" id="pm_ridgeDate" type="date" value="${v('ridgeDate')}">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">預計採收日</div>
+          <input class="inp" id="pm_harvestDate" type="date" value="${v('harvestDate')}">
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;background:#f5f3ff;border-radius:12px;padding:10px 14px">
+        <input type="checkbox" id="pm_trace" ${v('traceability')?'checked':''} style="width:16px;height:16px;accent-color:#7c3aed">
+        <label for="pm_trace" style="font-size:14px;font-weight:700;color:#7c3aed">🏷️ 已申請產銷履歷</label>
+      </div>
+      <div id="pm_traceWrap" style="${!v('traceability')?'display:none':''}">
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">產銷履歷管理辦法</div>
+        <textarea class="inp" id="pm_traceNote" rows="2" placeholder="用藥規範、追溯碼、審查週期…">${esc(v('traceNote'))}</textarea>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">備註</div>
+        <textarea class="inp" id="pm_note" rows="2">${esc(v('note'))}</textarea>
+      </div>
+      <button onclick="savePlotModal('${pid||''}')" class="btn btn-g btn-lg">${p?'儲存變更':'新增田區'}</button>
+    </div>
+    <script>
+      document.getElementById('pm_trace').onchange=function(){document.getElementById('pm_traceWrap').style.display=this.checked?'':'none';};
+      let _selPT='${v('type','self')}';
+      function setPT(t){
+        _selPT=t;
+        ${PLOT_TYPES.map(tt=>`document.getElementById('pt_${tt.id}').style.borderColor='';document.getElementById('pt_${tt.id}').style.background='#fafaf9';document.getElementById('pt_${tt.id}').style.color='#a8a29e';`).join('')}
+        const tp=${JSON.stringify(PLOT_TYPES)}.find(x=>x.id===t);
+        document.getElementById('pt_'+t).style.borderColor=tp.color;
+        document.getElementById('pt_'+t).style.background=tp.bg;
+        document.getElementById('pt_'+t).style.color=tp.color;
+      }
+    <\/script>`);
+}
+function savePlotModal(pid){
+  const name=document.getElementById('pm_name').value.trim();
+  if(!name){alert('請填寫田區名稱');return;}
+  // get type from buttons' state
+  let type='self';
+  PLOT_TYPES.forEach(t=>{ if(document.getElementById('pt_'+t.id)?.style.borderColor===t.color) type=t.id; });
+  // fallback: check which one has non-grey border
+  const obj={
+    name, type,
+    area:document.getElementById('pm_area').value,
+    landCost:parseFloat(document.getElementById('pm_landCost').value)||0,
+    plantDate:document.getElementById('pm_plantDate').value,
+    ridgeDate:document.getElementById('pm_ridgeDate').value,
+    harvestDate:document.getElementById('pm_harvestDate').value,
+    traceability:document.getElementById('pm_trace').checked,
+    traceNote:document.getElementById('pm_traceNote').value,
+    note:document.getElementById('pm_note').value,
+  };
+  if(pid){ DB.plots=DB.plots.map(p=>p.id===pid?{...p,...obj}:p); }
+  else    { DB.plots.push({...obj,id:uid(),closed:false,sold:false,harvests:[]}); }
+  saveDB(); _closeModal(); renderFarm();
+}
+function toggleClosePlot(id){ DB.plots=DB.plots.map(p=>p.id===id?{...p,closed:!p.closed}:p); saveDB(); renderFarm(); }
+function delPlot(id){ if(confirm('確定刪除此田區？')) { DB.plots=DB.plots.filter(p=>p.id!==id); saveDB(); renderFarm(); } }
+
+/* 詳情 Modal */
+function openDetailModal(pid){
+  const p=DB.plots.find(x=>x.id===pid); if(!p) return;
+  const m=plotMeta(p);
+  const myOps=DB.ops.filter(o=>{const ids=Array.isArray(o.plotIds)?o.plotIds:[o.plotId].filter(Boolean);return ids.includes(pid);});
+  const tkn=(p.harvests||[]).reduce((s,h)=>s+h.kg,0);
+  const tbn=(p.harvests||[]).reduce((s,h)=>s+h.bundles,0);
+  const yfn=m.costPerFen!==null&&tkn>0?(tkn/parseFloat(p.area||1)).toFixed(1):null;
+  const pt=ptOf(p.type);
+
+  openModal(`
+    <div style="font-weight:900;font-size:16px;font-family:serif;margin-bottom:12px">📍 ${esc(p.name)} 詳情</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      ${[['型態',pt.icon+' '+pt.label],['面積',p.area?p.area+'分地':'—'],['種植日',p.plantDate||'—'],['種植天數',m.days!==null?`第${m.days}天`:'—'],['預計培土',p.ridgeDate||'—'],['預計採收',p.harvestDate||'—'],['最後噴藥',m.lastSpray||'—'],['最後施肥',m.lastFert||'—']].map(([l,v])=>`
+      <div style="background:#f5f5f4;border-radius:12px;padding:8px">
+        <div style="font-size:10px;color:#a8a29e">${l}</div>
+        <div style="font-weight:700;font-size:13px">${v}</div>
+      </div>`).join('')}
+    </div>
+    ${p.traceability?`<div style="background:#f5f3ff;border-radius:12px;padding:10px 14px;margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:#7c3aed;margin-bottom:4px">🏷️ 產銷履歷管理辦法</div><div style="font-size:13px;color:#5b21b6">${esc(p.traceNote||'（未填寫）')}</div></div>`:''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="background:#fef2f2;border-radius:12px;padding:10px;text-align:center"><div style="font-size:10px;color:#f87171">累計種植成本</div><div style="font-weight:900;font-size:18px;color:#dc2626">NT$${fmt(m.cost)}</div></div>
+      <div style="background:#fff7ed;border-radius:12px;padding:10px;text-align:center"><div style="font-size:10px;color:#fb923c">每分地成本</div><div style="font-weight:900;font-size:18px;color:#ea580c">${m.costPerFen!==null?'NT$'+fmt(m.costPerFen):'—'}</div></div>
+    </div>
+    ${(p.harvests||[]).length>0?`
+    <div style="background:#f0fdf4;border-radius:12px;padding:12px;margin-bottom:10px">
+      <div style="font-weight:700;font-size:13px;color:#166534;margin-bottom:8px">🧺 採收記錄</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px">
+        ${[['總捆數',fmt(tbn)],['總公斤',fmt(tkn)+'kg'],['每分地',yfn?yfn+'kg':'—']].map(([l,v])=>`<div style="text-align:center"><div style="font-size:10px;color:#4ade80">${l}</div><div style="font-weight:900;font-size:14px;color:#166534">${v}</div></div>`).join('')}
+      </div>
+      ${(p.harvests||[]).map(h=>`<div style="display:flex;justify-content:space-between;font-size:12px;border-top:1px solid #bbf7d0;padding:4px 0;color:#166534"><span>${h.date}</span><span>${h.bundles>0?h.bundles+'捆 · ':''}${h.kg}kg${h.note?' · '+esc(h.note):''}</span></div>`).join('')}
+    </div>`:''}
+    <div style="font-weight:700;font-size:13px;color:#57534e;margin-bottom:6px">作業記錄（${myOps.length}筆）</div>
+    <div style="max-height:180px;overflow-y:auto">
+      ${myOps.length===0?'<div style="text-align:center;color:#a8a29e;font-size:12px;padding:8px">尚無作業記錄</div>':
+        myOps.sort((a,b)=>b.date.localeCompare(a.date)).map(o=>{const c=catOf(FARM_CATS,o.cat);const pids=Array.isArray(o.plotIds)?o.plotIds:[o.plotId].filter(Boolean);return`<div style="display:flex;justify-content:space-between;font-size:12px;border-bottom:1px solid #f5f5f4;padding:4px 0">${tagHTML(c.icon+' '+c.label,c.color,c.bg)}<span style="margin-left:4px;font-weight:600">${esc(o.product)}</span><span style="color:#a8a29e;margin-left:4px">${o.date}</span>${pids.length>1?`<span style="color:#2563eb;margin-left:4px">×${pids.length}田分攤</span>`:''}<span style="font-weight:900;color:#dc2626;margin-left:auto;padding-left:8px;flex-shrink:0">NT$${fmt(o.perPlotAmt??o.amount)}</span></div>`;}).join('')}
+    </div>
+  `);
+}
+
+/* 採收 Modal */
+function openHarvestModal(pid){
+  const p=DB.plots.find(x=>x.id===pid); if(!p) return;
+  openModal(`
+    <div style="font-weight:900;font-size:16px;font-family:serif;margin-bottom:16px">🧺 採收記錄：${esc(p.name)}</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">採收日期 *</div><input class="inp" id="hv_date" type="date" value="${today()}"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">大捆數</div><input class="inp" id="hv_bundles" type="number" placeholder="0（可不填）"></div>
+        <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">總公斤數 *</div><input class="inp" id="hv_kg" type="number" placeholder="0"></div>
+      </div>
+      <div id="hv_yieldPreview"></div>
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">備註</div><input class="inp" id="hv_note" placeholder="補充說明"></div>
+      <button onclick="saveHarvest('${pid}')" class="btn btn-g btn-lg">儲存採收記錄</button>
+    </div>
+    <script>
+      document.getElementById('hv_kg').oninput=function(){
+        const kg=parseFloat(this.value)||0;
+        const area=parseFloat('${p.area||0}')||0;
+        const el=document.getElementById('hv_yieldPreview');
+        if(kg>0&&area>0) el.innerHTML='<div style="background:#f0fdf4;border-radius:10px;padding:8px;text-align:center;font-size:12px;color:#166534;font-weight:700">每分地產量：'+(kg/area).toFixed(1)+' kg/分地</div>';
+        else el.innerHTML='';
+      };
+    <\/script>`);
+}
+function saveHarvest(pid){
+  const kg=parseFloat(document.getElementById('hv_kg').value)||0;
+  if(!kg){alert('請填寫公斤數');return;}
+  const rec={id:uid(),date:document.getElementById('hv_date').value,bundles:parseFloat(document.getElementById('hv_bundles').value)||0,kg,note:document.getElementById('hv_note').value};
+  DB.plots=DB.plots.map(p=>p.id===pid?{...p,harvests:[...(p.harvests||[]),rec]}:p);
+  saveDB(); _closeModal(); renderFarm();
+}
+
+/* 賣出田 Modal */
+function openSellPlotModal(pid){
+  const p=DB.plots.find(x=>x.id===pid); if(!p) return;
+  openModal(`
+    <div style="font-weight:900;font-size:16px;font-family:serif;margin-bottom:16px">💰 賣出田區：${esc(p.name)}</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">賣出日期 *</div><input class="inp" id="sp_date" type="date" value="${today()}"></div>
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">買家名稱</div><input class="inp" id="sp_buyer" placeholder="買家/公司"></div>
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">賣出價格（元）</div><input class="inp" id="sp_price" type="number" placeholder="0"></div>
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">備註</div><textarea class="inp" id="sp_note" rows="2"></textarea></div>
+      <button onclick="saveSellPlot('${pid}')" class="btn btn-b btn-lg">確認賣出</button>
+    </div>`);
+}
+function saveSellPlot(pid){
+  DB.plots=DB.plots.map(p=>p.id===pid?{...p,sold:true,soldDate:document.getElementById('sp_date').value,soldBuyer:document.getElementById('sp_buyer').value,soldPrice:parseFloat(document.getElementById('sp_price').value)||0,soldNote:document.getElementById('sp_note').value}:p);
+  saveDB(); _closeModal(); renderFarm();
+}
+
+/* ── 農資庫 Modal ── */
+function openAgriModal(){
+  renderAgriModal();
+}
+function renderAgriModal(){
+  const ppu = agriUseItem ? ((agriUseItem.purchasePrice||0)/(agriUseItem.totalVol||1)) : 0;
+  let body = `
+    <div style="font-weight:900;font-size:16px;font-family:serif;margin-bottom:12px">🧪 農資庫</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      ${[['list','資材列表'],['new','新增資材']].map(([k,l])=>`<button onclick="setAgriTab('${k}')" style="flex:1;padding:8px;border-radius:12px;border:2px solid ${agriTab===k?'#166534':'#e7e5e4'};background:${agriTab===k?'#f0fdf4':'#fafaf9'};color:${agriTab===k?'#166534':'#a8a29e'};font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">${l}</button>`).join('')}
+    </div>`;
+
+  if(agriTab==='list'){
+    body += DB.agri.length===0?'<div style="text-align:center;color:#a8a29e;padding:24px;font-size:13px">尚無資材，請先新增</div>':
+      DB.agri.map(item=>{
+        const p=(item.purchasePrice||0)/(item.totalVol||1);
+        return`<div class="card p-3 mb-2">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div style="flex:1">
+              <div style="font-weight:700;font-size:14px">${esc(item.name)}</div>
+              <div style="font-size:11px;color:#78716c">包裝 ${item.totalVol}${esc(item.unit)}　購入 NT$${fmt(item.purchasePrice)}</div>
+              <div style="font-size:11px;color:#1d4ed8;font-weight:600">單位成本 NT$${p.toFixed(2)}/${esc(item.unit)}</div>
+              ${item.spec?`<div style="font-size:11px;color:#a8a29e">${esc(item.spec)}</div>`:''}
+            </div>
+            <div style="display:flex;gap:4px;margin-left:8px;flex-shrink:0">
+              <button onclick="setAgriUse('${item.id}')" class="btn btn-g btn-sm">使用</button>
+              <button onclick="delAgri('${item.id}')" class="btn btn-r btn-sm">刪</button>
+            </div>
+          </div>
+          ${agriUseItem?.id===item.id?`
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid #f5f5f4">
+            <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">本次使用量（${esc(item.unit)}）</div>
+            <input class="inp" id="agriUseAmt" type="number" placeholder="0" oninput="updateAgriCost(${p.toFixed(4)})">
+            <div id="agriCostPreview"></div>
+            <button onclick="applyAgriUse('${item.id}','${esc(item.name)}','${esc(item.unit)}')" class="btn btn-a btn-lg" style="margin-top:8px">帶入作業登錄</button>
+          </div>`:''}`
+      }).join('');
+  }
+  if(agriTab==='new'){
+    body+=`<div style="display:flex;flex-direction:column;gap:10px">
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">資材名稱 *</div><input class="inp" id="ag_name" placeholder="陶斯松、蓋普達、亞磷酸鉀…"></div>
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">規格/備註</div><input class="inp" id="ag_spec" placeholder="例：400倍稀釋"></div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:8px">
+        <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">包裝容量/重量 *</div><input class="inp" id="ag_vol" type="number" placeholder="0"></div>
+        <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">單位</div>
+          <select class="inp" id="ag_unit">${['L','mL','kg','g','包','罐'].map(u=>`<option value="${u}">${u}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">購入總價（元）*</div><input class="inp" id="ag_price" type="number" placeholder="0" oninput="updateAgriNewCost()"></div>
+      <div id="agNewCostPv"></div>
+      <button onclick="saveAgri()" class="btn btn-g btn-lg">新增資材</button>
+    </div>
+    <script>function updateAgriNewCost(){const v=parseFloat(document.getElementById('ag_vol').value)||0;const p=parseFloat(document.getElementById('ag_price').value)||0;const u=document.getElementById('ag_unit').value;const el=document.getElementById('agNewCostPv');if(v&&p) el.innerHTML='<div style="background:#eff6ff;border-radius:10px;padding:8px;text-align:center;font-size:12px;color:#1d4ed8;font-weight:700">單位成本 NT$'+(p/v).toFixed(2)+'/'+u+'</div>'; else el.innerHTML='';}<\/script>`;
+  }
+  openModal(body);
+}
+function setAgriTab(t){ agriTab=t; agriUseItem=null; renderAgriModal(); }
+function setAgriUse(id){ agriUseItem=agriUseItem?.id===id?null:DB.agri.find(x=>x.id===id); renderAgriModal(); }
+function updateAgriCost(ppu){ const a=parseFloat(document.getElementById('agriUseAmt')?.value)||0; const cost=Math.round(ppu*a); const el=document.getElementById('agriCostPreview'); if(el&&a>0) el.innerHTML=`<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:8px;text-align:center;margin-top:6px"><div style="font-size:10px;color:#d97706">本次成本</div><div style="font-weight:900;font-size:20px;color:#d97706">NT$${fmt(cost)}</div></div>`; else if(el) el.innerHTML=''; }
+function applyAgriUse(itemId,name,unit){
+  const item=DB.agri.find(x=>x.id===itemId); if(!item) return;
+  const usedAmt=parseFloat(document.getElementById('agriUseAmt')?.value)||0;
+  if(!usedAmt){alert('請填寫使用量');return;}
+  const ppu=(item.purchasePrice||0)/(item.totalVol||1);
+  const cost=Math.round(ppu*usedAmt);
+  // 帶回作業登錄
+  agriUseItem=null; _closeModal(); farmSub='ops'; renderFarm();
+  setTimeout(()=>{
+    const pEl=document.getElementById('opProduct'); if(pEl) pEl.value=name;
+    const aEl=document.getElementById('opAmt'); if(aEl){ aEl.value=cost; updateSplit(); }
+    const qEl=document.getElementById('opQty'); if(qEl) qEl.value=usedAmt+unit;
+    // set cat to spray
+    opCat='spray'; renderFarm();
+    setTimeout(()=>{ const pEl2=document.getElementById('opProduct'); if(pEl2) pEl2.value=name; const aEl2=document.getElementById('opAmt'); if(aEl2){ aEl2.value=cost; updateSplit(); } const qEl2=document.getElementById('opQty'); if(qEl2) qEl2.value=usedAmt+unit; },100);
+  },50);
+}
+function delAgri(id){ DB.agri=DB.agri.filter(x=>x.id!==id); saveDB(); renderAgriModal(); }
+function saveAgri(){
+  const name=document.getElementById('ag_name').value.trim();
+  const vol=parseFloat(document.getElementById('ag_vol').value)||0;
+  const price=parseFloat(document.getElementById('ag_price').value)||0;
+  if(!name||!vol||!price){alert('請填寫名稱、容量、價格');return;}
+  DB.agri.push({id:uid(),name,spec:document.getElementById('ag_spec').value,totalVol:vol,unit:document.getElementById('ag_unit').value,purchasePrice:price});
+  saveDB(); agriTab='list'; renderAgriModal();
+}
+
+/* ════════════════════════════════════════════════════════
+   ██████  PROCESS
+════════════════════════════════════════════════════════ */
+function renderProc(){
+  let html=`
+  <div class="stab-wrap">
+    ${[['cost','💸 運營成本'],['sales','💰 銷售登錄'],['channel','📊 渠道']].map(([k,l])=>`
+    <button onclick="setProcSub('${k}')" id="psub-${k}" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all ${procSub===k?'stab am on text-white':'text-stone-500'}">${l}</button>`).join('')}
+  </div>`;
+
+  if(procSub==='cost')    html+=procCostHTML();
+  if(procSub==='sales')   html+=procSalesHTML();
+  if(procSub==='channel') html+=procChannelHTML();
+
+  document.getElementById('page-process').innerHTML=html;
+}
+function setProcSub(s){ procSub=s; renderProc(); }
+
+/* ── 運營成本 ── */
+function procCostHTML(){
+  let catGrid=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">`;
+  PROC_CATS.forEach(c=>{ const a=procCat===c.id; catGrid+=`<button onclick="setProcCat('${c.id}')" class="cat-btn ${a?'active':''}" style="--c:${c.color};--bg:${c.bg}"><span style="font-size:20px">${c.icon}</span><span class="lbl">${c.label}</span></button>`; });
+  catGrid+=`</div>`;
+
+  const recent=DB.proc.slice(0,8);
+  let recentHTML='';
+  if(recent.length){
+    recentHTML=`<div class="card p-4 mt-4"><div style="font-weight:700;font-size:13px;color:#57534e;margin-bottom:8px">最近 8 筆運營成本</div>`;
+    recent.forEach(o=>{const c=catOf(PROC_CATS,o.cat);recentHTML+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f5f5f4"><div style="flex:1;min-width:0">${tagHTML(c.icon+' '+c.label,c.color,c.bg)}<div style="font-size:13px;font-weight:600;color:#292524;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.product)}</div><div style="font-size:11px;color:#a8a29e">${o.date}${o.qty?' · '+esc(o.qty):''}</div></div><div style="display:flex;align-items:center;gap:8px;margin-left:8px;flex-shrink:0"><div style="font-weight:900;color:#dc2626;font-size:13px">NT$${fmt(o.amount)}</div><button onclick="delProc('${o.id}')" style="color:#d6d3d1;font-size:12px;background:none;border:none;cursor:pointer">✕</button></div></div>`;});
+    recentHTML+=`</div>`;
+  }
+
+  return `<div class="card p-4">
+    <div style="font-weight:900;font-size:16px;font-family:serif;margin-bottom:12px">💸 運營成本登錄</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">日期</div><input class="inp" id="pc_date" type="date" value="${today()}"></div>
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:6px">成本類別 *</div>${catGrid}</div>
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">品名/項目 *</div><input class="inp" id="pc_product" placeholder="採收工資、紙箱、油費…"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">金額（元）</div><input class="inp" id="pc_amt" type="number" placeholder="0"></div>
+        <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">數量/用量</div><input class="inp" id="pc_qty" placeholder="50箱、5人"></div>
+      </div>
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">備註</div><textarea class="inp" id="pc_note" rows="2"></textarea></div>
+      <button id="pcSaveBtn" onclick="saveProc()" class="btn btn-a btn-lg">儲存運營成本</button>
+    </div>
+  </div>${recentHTML}`;
+}
+function setProcCat(c){ procCat=c; renderProc(); }
+function saveProc(){
+  const product=document.getElementById('pc_product')?.value.trim();
+  if(!product){alert('請填寫品名/項目');return;}
+  DB.proc.unshift({
+    id:uid(),
+    date:document.getElementById('pc_date')?.value||today(),
+    cat:procCat||'misc',
+    product,
+    amount:parseFloat(document.getElementById('pc_amt')?.value)||0,
+    qty:document.getElementById('pc_qty')?.value||'',
+    note:document.getElementById('pc_note')?.value||''
+  });
+  saveDB(); procCat='';
+  const btn=document.getElementById('pcSaveBtn');
+  if(btn){ btn.textContent='✓ 已儲存！'; btn.style.background='#22c55e'; }
+  setTimeout(()=>renderProc(),1600);
+}
+function delProc(id){ DB.proc=DB.proc.filter(o=>o.id!==id); saveDB(); renderProc(); }
+
+/* ── 銷售登錄 ── */
+function procSalesHTML(){
+  const actPlots=DB.plots.filter(p=>!p.closed);
+  let plotBtns='';
+  if(actPlots.length){
+    const curPlotId=document.getElementById?.('sv_plot')?.value||'';
+    plotBtns=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+      <button onclick="setSalePlot('')" class="plot-btn ${!curPlotId?'active':''}">不指定</button>
+      ${actPlots.map(p=>`<button onclick="setSalePlot('${p.id}')" class="plot-btn" id="splot_${p.id}">${esc(p.name)}</button>`).join('')}
+    </div>`;
+  }
+  let prodBtns=`<div style="display:flex;flex-wrap:wrap;gap:6px">${SALE_PRODS.map(p=>`<button onclick="setSaleProd('${p.id}')" class="plot-btn ${saleProd===p.id?'active':''}">${p.icon} ${p.label}</button>`).join('')}</div>`;
+  let chanBtns=`<select class="inp" id="sv_chan" onchange="saleChan=this.value"><option value="">選擇渠道…</option>${CHANNELS.map(c=>`<option value="${c.id}" ${saleChan===c.id?'selected':''}>${c.label}</option>`).join('')}</select>`;
+
+  const recent=DB.sales.slice(0,6);
+  let recentHTML='';
+  if(recent.length){
+    recentHTML=`<div class="card p-4 mt-4"><div style="font-weight:700;font-size:13px;color:#57534e;margin-bottom:8px">最近 6 筆銷售</div>`;
+    recent.forEach(s=>{const prod=SALE_PRODS.find(p=>p.id===s.product);const ch=CHANNELS.find(c=>c.id===s.channel);const plot=DB.plots.find(p=>p.id===s.plotId);recentHTML+=`<div style="padding:8px 0;border-bottom:1px solid #f5f5f4"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="flex:1;min-width:0"><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:2px">${prod?tagHTML(prod.icon+' '+prod.label,'#15803d','#dcfce7'):''}${ch?tagHTML(ch.label,'#0369a1','#dbeafe'):''}${plot?`<span style="font-size:11px;color:#a8a29e">${esc(plot.name)}</span>`:''}</div><div style="font-size:11px;color:#78716c">${s.mode==='range'?esc(s.dateFrom)+'～'+esc(s.dateTo):esc(s.date||'')}${s.kg>0?' · '+s.kg+'kg':''}${s.buyer?' · '+esc(s.buyer):''}</div></div><div style="display:flex;align-items:center;gap:6px;margin-left:8px;flex-shrink:0"><div style="font-weight:900;color:#16a34a;font-size:13px">NT$${fmt(s.revenue)}</div><button onclick="delSale('${s.id}')" style="color:#d6d3d1;font-size:12px;background:none;border:none;cursor:pointer">✕</button></div></div></div>`;});
+    recentHTML+=`</div>`;
+  }
+
+  return `<div class="card p-4">
+    <div style="font-weight:900;font-size:16px;font-family:serif;margin-bottom:12px">💰 銷售登錄</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      ${[['single','單筆輸入'],['range','區間總收入']].map(([m,l])=>`<button onclick="setSaleMode('${m}')" style="flex:1;padding:8px;border-radius:12px;border:2px solid ${saleMode===m?'#d97706':'#e7e5e4'};background:${saleMode===m?'#fffbeb':'#fafaf9'};color:${saleMode===m?'#d97706':'#a8a29e'};font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">${l}</button>`).join('')}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${saleMode==='single'?`<div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">日期 *</div><input class="inp" id="sv_date" type="date" value="${today()}"></div>`:
+        `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">起始日</div><input class="inp" id="sv_from" type="date"></div><div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">結束日</div><input class="inp" id="sv_to" type="date"></div></div>`
+      }
+      ${actPlots.length?`<div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">來源田區（選填）</div>${plotBtns}</div>`:''}
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">銷售產品</div>${prodBtns}</div>
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">銷售渠道</div>${chanBtns}</div>
+      ${saleMode==='single'?`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">公斤/捆數</div><input class="inp" id="sv_kg" type="number" placeholder="0" oninput="updateSalePreview()"></div>
+        <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">單價（元/kg）</div><input class="inp" id="sv_price" type="number" placeholder="0" oninput="updateSalePreview()"></div>
+      </div>
+      <div id="salePreviewArea"></div>`:
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">總公斤數</div><input class="inp" id="sv_kg" type="number" placeholder="0"></div>
+        <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">總收入（元）*</div><input class="inp" id="sv_rev" type="number" placeholder="0" oninput="updateRangeAvg()"></div>
+      </div>
+      <div id="rangeAvgArea"></div>`}
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">買家/通路</div><input class="inp" id="sv_buyer" placeholder="西螺市場、某餐廳…"></div>
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">結算週期（天）</div><input class="inp" id="sv_settle" type="number" placeholder="30=月結　60=雙月結"></div>
+      <div><div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">備註</div><textarea class="inp" id="sv_note" rows="2"></textarea></div>
+      <button id="svSaveBtn" onclick="saveSale()" class="btn btn-a btn-lg">儲存銷售記錄</button>
+    </div>
+  </div>${recentHTML}`;
+}
+
+let _salePlotId='';
+function setSaleMode(m){ saleMode=m; renderProc(); }
+function setSaleProd(id){ saleProd=saleProd===id?'':id; renderProc(); }
+function setSalePlot(id){
+  _salePlotId=id;
+  document.querySelectorAll('[id^="splot_"]').forEach(b=>b.classList.remove('active'));
+  if(id) { const el=document.getElementById('splot_'+id); if(el) el.classList.add('active'); }
+  else { document.querySelectorAll('.plot-btn')[0]?.classList.add('active'); }
+}
+function updateSalePreview(){
+  const kg=parseFloat(document.getElementById('sv_kg')?.value)||0;
+  const pr=parseFloat(document.getElementById('sv_price')?.value)||0;
+  const el=document.getElementById('salePreviewArea');
+  if(el&&kg&&pr) el.innerHTML=`<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:10px;text-align:center"><div style="font-size:10px;color:#d97706">預計收入</div><div style="font-weight:900;font-size:22px;color:#d97706">NT$${fmt(kg*pr)}</div></div>`;
+  else if(el) el.innerHTML='';
+}
+function updateRangeAvg(){
+  const kg=parseFloat(document.getElementById('sv_kg')?.value)||0;
+  const rev=parseFloat(document.getElementById('sv_rev')?.value)||0;
+  const el=document.getElementById('rangeAvgArea');
+  if(el&&kg&&rev) el.innerHTML=`<div style="font-size:11px;color:#a8a29e;text-align:center">平均單價 NT$${Math.round(rev/kg)}/kg</div>`;
+  else if(el) el.innerHTML='';
+}
+function saveSale(){
+  let rev;
+  if(saleMode==='single'){
+    const kg=parseFloat(document.getElementById('sv_kg')?.value)||0;
+    const pr=parseFloat(document.getElementById('sv_price')?.value)||0;
+    rev=kg*pr;
+  } else {
+    rev=parseFloat(document.getElementById('sv_rev')?.value)||0;
+  }
+  if(!rev){alert('請填寫收入/公斤數與單價');return;}
+  const rec={id:uid(),mode:saleMode,
+    date:saleMode==='single'?document.getElementById('sv_date')?.value:'',
+    dateFrom:saleMode==='range'?document.getElementById('sv_from')?.value:'',
+    dateTo:saleMode==='range'?document.getElementById('sv_to')?.value:'',
+    plotId:_salePlotId, product:saleProd, channel:saleChan,
+    kg:parseFloat(document.getElementById('sv_kg')?.value)||0,
+    price:parseFloat(saleMode==='single'?document.getElementById('sv_price')?.value:'0')||0,
+    revenue:rev, buyer:document.getElementById('sv_buyer')?.value||'',
+    settleDays:document.getElementById('sv_settle')?.value||'',
+    note:document.getElementById('sv_note')?.value||'',
+  };
+  DB.sales.unshift(rec); saveDB(); saleProd='';
+  document.getElementById('svSaveBtn').textContent='✓ 已儲存！';
+  document.getElementById('svSaveBtn').style.background='#22c55e';
+  setTimeout(()=>renderProc(),1600);
+}
+function delSale(id){ DB.sales=DB.sales.filter(s=>s.id!==id); saveDB(); renderProc(); }
+
+/* ── 渠道分析 ── */
+function procChannelHTML(){
+  const totalRev=DB.sales.reduce((s,x)=>s+x.revenue,0);
+  const chMap={};
+  DB.sales.forEach(s=>{ const ch=s.channel||'other'; if(!chMap[ch]) chMap[ch]={revenue:0,kg:0}; chMap[ch].revenue+=s.revenue; chMap[ch].kg+=s.kg||0; });
+  const chStats=Object.entries(chMap).map(([id,v])=>({id,revenue:v.revenue,kg:v.kg,label:CHANNELS.find(c=>c.id===id)?.label||id,pct:totalRev>0?Math.round(v.revenue/totalRev*100):0,avgPrice:v.kg>0?Math.round(v.revenue/v.kg):0})).sort((a,b)=>b.revenue-a.revenue);
+  const COLORS=['#15803d','#0369a1','#d97706','#7c3aed','#db2777','#6b7280'];
+
+  // SVG pie
+  let pie='';
+  if(chStats.length){
+    let cum=0;
+    const slices=chStats.map((d,i)=>{ const start=cum; cum+=d.pct/100; return{...d,start,end:cum,color:COLORS[i%6]}; });
+    const sp=s=>{
+      if(s.pct>=99) return 'M 50 50 m -45 0 a 45 45 0 1 0 90 0 a 45 45 0 1 0 -90 0';
+      const a1=s.start*Math.PI*2-Math.PI/2,a2=s.end*Math.PI*2-Math.PI/2;
+      const x1=50+45*Math.cos(a1),y1=50+45*Math.sin(a1),x2=50+45*Math.cos(a2),y2=50+45*Math.sin(a2);
+      return `M 50 50 L ${x1} ${y1} A 45 45 0 ${s.pct>50?1:0} 1 ${x2} ${y2} Z`;
+    };
+    pie=`<div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+      <svg viewBox="0 0 100 100" style="width:112px;height:112px;flex-shrink:0">
+        ${slices.map(s=>`<path d="${sp(s)}" fill="${s.color}" stroke="white" stroke-width="1"/>`).join('')}
+        <circle cx="50" cy="50" r="22" fill="white"/>
+        <text x="50" y="48" text-anchor="middle" font-size="6" font-weight="bold" fill="#374151">銷售</text>
+        <text x="50" y="56" text-anchor="middle" font-size="6" font-weight="bold" fill="#374151">渠道</text>
+      </svg>
+      <div style="flex:1">
+        ${slices.map(s=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <div style="width:10px;height:10px;border-radius:50%;background:${s.color};flex-shrink:0"></div>
+          <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:#292524">${esc(s.label)}</div><div style="font-size:10px;color:#a8a29e">NT$${fmt(s.revenue)} · ${s.pct}%${s.avgPrice>0?' · 均'+s.avgPrice+'元/kg':''}</div></div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  // product breakdown
+  let prodBar='';
+  SALE_PRODS.forEach(p=>{ const rev=DB.sales.filter(s=>s.product===p.id).reduce((s,x)=>s+x.revenue,0); if(!rev) return; const pct=totalRev>0?Math.round(rev/totalRev*100):0; prodBar+=`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="font-weight:600;color:#292524">${p.icon} ${p.label}</span><span style="color:#78716c">NT$${fmt(rev)} (${pct}%)</span></div><div class="bar"><div class="bar-fill" style="width:${pct}%;background:#16a34a"></div></div></div>`; });
+
+  return `
+  <div class="card p-4 mb-3">
+    <div style="font-weight:900;font-size:16px;font-family:serif;margin-bottom:12px">📊 銷售渠道分析</div>
+    ${chStats.length===0?'<div style="text-align:center;color:#a8a29e;padding:24px;font-size:13px">尚無銷售記錄</div>':pie}
+    ${chStats.length>0?`<div style="font-weight:700;font-size:12px;color:#57534e;margin-bottom:8px">各渠道明細</div>
+    ${chStats.map((c,i)=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="font-weight:900;color:${COLORS[i%6]}">${esc(c.label)}</span><span style="font-weight:700;color:#374151">NT$${fmt(c.revenue)} (${c.pct}%)${c.avgPrice>0?' · 均'+c.avgPrice+'/kg':''}</span></div><div class="bar"><div class="bar-fill" style="width:${c.pct}%;background:${COLORS[i%6]}"></div></div></div>`).join('')}`:''}
+  </div>
+  ${prodBar?`<div class="card p-4"><div style="font-weight:700;font-size:13px;color:#57534e;margin-bottom:10px">各產品銷售比重</div>${prodBar}</div>`:''}`;
+}
+
+/* ════════════════════════════════════════════════════════
+   ██████  REPORTS — 月報表 · 買家分析 · 結算作帳
+════════════════════════════════════════════════════════ */
+let reportSub    = 'monthly';
+let expandedMonths = {};
+let settlePlots  = [];
+let stFrom = '', stTo = '';  // 結算日期（跨 render 保存）
+
+// ── SVG 圓餅圖通用函式 ──
+function makePie(slices, cx=50, r=42, ri=18) {
+  // slices: [{label, value, color}]
+  const total = slices.reduce((s,x)=>s+x.value,0);
+  if (!total) return '';
+  let cum = 0;
+  let paths = '';
+  slices.forEach(s => {
+    const start = cum / total;
+    cum += s.value;
+    const end = cum / total;
+    if (s.value <= 0) return;
+    const a1 = start*Math.PI*2 - Math.PI/2;
+    const a2 = end  *Math.PI*2 - Math.PI/2;
+    const x1=cx+r*Math.cos(a1), y1=50+r*Math.sin(a1);
+    const x2=cx+r*Math.cos(a2), y2=50+r*Math.sin(a2);
+    const large = (end-start) > 0.5 ? 1 : 0;
+    const d = s.value===total
+      ? `M ${cx} ${50-r} a ${r} ${r} 0 1 1 -0.001 0 Z`
+      : `M ${cx} 50 L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
+    paths += `<path d="${d}" fill="${s.color}" stroke="white" stroke-width="1"/>`;
+  });
+  return paths + `<circle cx="${cx}" cy="50" r="${ri}" fill="white"/>`;
+}
+
+function renderReports() {
+  // 保留日期欄位值
+  const prevFrom = document.getElementById('st_from')?.value || stFrom;
+  const prevTo   = document.getElementById('st_to')?.value   || stTo;
+  stFrom = prevFrom; stTo = prevTo;
+
+  let html = `
+  <div class="stab-wrap">
+    ${[['monthly','📅 月報表'],['buyer','🏪 買家分析'],['settlement','🧾 結算作帳']].map(([k,l])=>`
+    <button onclick="setReportSub('${k}')" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all ${reportSub===k?'stab on':''}" style="${reportSub===k?'':'color:#78716c'}">${l}</button>`).join('')}
+  </div>`;
+
+  if (reportSub === 'monthly')    html += reportMonthlyHTML();
+  if (reportSub === 'buyer')      html += reportBuyerHTML();
+  if (reportSub === 'settlement') html += reportSettlementHTML();
+
+  document.getElementById('page-reports').innerHTML = html;
+}
+function setReportSub(s) { reportSub = s; renderReports(); }
+
+/* ── 月報表（僅加工銷售） ── */
+function reportMonthlyHTML() {
+  const months = {};
+  const addM = (date, type, cat, label, amt, note) => {
+    if (!date) return;
+    const ym = date.slice(0,7);
+    if (!months[ym]) months[ym] = { procCost:0, rev:0, items:[] };
+    months[ym][type] += amt;
+    months[ym].items.push({ type, cat, label, amt, note, date });
+  };
+  DB.proc.forEach(o  => addM(o.date,            'procCost', o.cat,  o.product,       o.amount,  o.qty||''));
+  DB.sales.forEach(s => addM(s.date||s.dateFrom, 'rev',     'sale', s.buyer||'銷售', s.revenue, `${s.kg>0?s.kg+'kg':''}${s.product?' · '+(SALE_PRODS.find(p=>p.id===s.product)?.label||''):''}` ));
+
+  const sorted = Object.entries(months).sort((a,b)=>b[0].localeCompare(a[0]));
+  if (!sorted.length) return `<div class="card p-6" style="text-align:center;color:#a8a29e;font-size:13px">尚無加工銷售記錄</div>`;
+
+  const totalProcCost = DB.proc.reduce((s,o)=>s+o.amount,0);
+  const totalRev      = DB.sales.reduce((s,x)=>s+x.revenue,0);
+  const totalProfit   = totalRev - totalProcCost;
+
+  // 運營成本結構圓餅
+  const procPieCats = PROC_CATS.map(c=>({
+    label: c.label, color: c.color,
+    value: DB.proc.filter(o=>o.cat===c.id).reduce((s,o)=>s+o.amount,0)
+  })).filter(x=>x.value>0);
+  const procPiePaths = makePie(procPieCats);
+
+  // 月份趨勢
+  const maxMonthRev = Math.max(...sorted.map(([,d])=>d.rev), 1);
+
+  let html = `
+  <!-- 累計總覽卡 -->
+  <div class="card p-4 mb-3" style="border-left:4px solid #d97706">
+    <div style="font-weight:900;font-size:13px;color:#d97706;margin-bottom:10px">📊 加工銷售累計總覽</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px">
+      <div style="background:#fef3c7;border-radius:12px;padding:10px;text-align:center">
+        <div style="font-size:10px;color:#d97706">加工總成本</div>
+        <div style="font-weight:900;font-size:16px;color:#d97706">NT$${fmt(totalProcCost)}</div>
+      </div>
+      <div style="background:#f0fdf4;border-radius:12px;padding:10px;text-align:center">
+        <div style="font-size:10px;color:#16a34a">銷售總收入</div>
+        <div style="font-weight:900;font-size:16px;color:#16a34a">NT$${fmt(totalRev)}</div>
+      </div>
+    </div>
+    <div style="background:${totalProfit>=0?'#f0fdf4':'#fef2f2'};border-radius:12px;padding:10px;text-align:center;margin-bottom:${procPieCats.length?12:0}px">
+      <div style="font-size:10px;color:#6b7280">加工銷售損益</div>
+      <div style="font-weight:900;font-size:22px;font-family:serif;color:${totalProfit>=0?'#16a34a':'#dc2626'}">${totalProfit>=0?'▲ +':'▼ '}NT$${fmt(Math.abs(totalProfit))}</div>
+    </div>
+    ${procPieCats.length?`<div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:6px">運營成本結構</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <svg viewBox="0 0 100 100" style="width:80px;height:80px;flex-shrink:0">${procPiePaths}</svg>
+      <div style="flex:1">
+        ${procPieCats.map(c=>{const pct=totalProcCost>0?Math.round(c.value/totalProcCost*100):0;return`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><div style="width:8px;height:8px;border-radius:50%;background:${c.color};flex-shrink:0"></div><div style="flex:1"><div style="font-size:11px;font-weight:700">${c.label}</div><div class="bar" style="margin-top:2px"><div class="bar-fill" style="width:${pct}%;background:${c.color}"></div></div></div><span style="font-size:10px;color:#6b7280;flex-shrink:0">${pct}%</span></div>`;}).join('')}
+      </div>
+    </div>`:''}
+  </div>
+
+  <!-- 月份趨勢 -->
+  <div class="card p-4 mb-3">
+    <div style="font-weight:900;font-size:13px;margin-bottom:10px">📈 月份趨勢（近${Math.min(sorted.length,6)}個月）</div>
+    ${sorted.slice(0,6).reverse().map(([ym,d])=>{
+      const pl = d.rev - d.procCost;
+      const revW  = Math.round(d.rev/maxMonthRev*100);
+      const costW = Math.round(d.procCost/maxMonthRev*100);
+      return`<div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+          <span style="font-weight:700;color:#374151">${mLabel(ym)}</span>
+          <span style="font-weight:900;color:${pl>=0?'#16a34a':'#dc2626'}">${pl>=0?'▲':'▼'} NT$${fmt(Math.abs(pl))}</span>
+        </div>
+        <div style="display:flex;gap:2px">
+          <div style="height:8px;border-radius:4px 0 0 4px;width:${costW}%;background:#d97706;opacity:.8;min-width:${d.procCost?2:0}px"></div>
+          <div style="height:8px;border-radius:0 4px 4px 0;width:${revW}%;background:#16a34a;opacity:.8;min-width:${d.rev?2:0}px"></div>
+        </div>
+        <div style="font-size:9px;color:#a8a29e;margin-top:1px">加工 NT$${fmt(d.procCost)} · 收入 NT$${fmt(d.rev)}</div>
+      </div>`;
+    }).join('')}
+    <div style="display:flex;gap:12px;font-size:10px;color:#6b7280;margin-top:4px">
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#d97706;opacity:.8;margin-right:3px"></span>運營成本</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#16a34a;opacity:.8;margin-right:3px"></span>收入</span>
+    </div>
+  </div>`;
+
+  // 月份明細卡
+  sorted.forEach(([ym, data]) => {
+    const pl = data.rev - data.procCost;
+    const isOpen = expandedMonths[ym];
+    const procItems = data.items.filter(i=>i.type==='procCost');
+    const saleItems = data.items.filter(i=>i.type==='rev');
+
+    // 月份圓餅
+    const mPieSlices = [
+      {label:'加工',value:data.procCost, color:'#f97316'},
+      {label:'收入',value:data.rev,      color:'#22c55e'},
+    ].filter(x=>x.value>0);
+
+    html += `
+    <div class="card mb-3 overflow-hidden">
+      <div onclick="toggleMonth('${ym}')" style="cursor:pointer;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;${pl>=0?'background:#f0fdf4':'background:#fef2f2'}">
+        <div>
+          <div style="font-weight:900;font-size:17px;font-family:serif">${mLabel(ym)}</div>
+          <div style="font-size:11px;color:#78716c;margin-top:2px">${procItems.length}筆支出 · ${saleItems.length}筆收入</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="text-align:right">
+            <div style="font-size:10px;color:#6b7280">月損益</div>
+            <div style="font-weight:900;font-size:17px;color:${pl>=0?'#16a34a':'#dc2626'}">${pl>=0?'▲':'▼'} NT$${fmt(Math.abs(pl))}</div>
+          </div>
+          <div style="font-size:20px;color:#6b7280;font-weight:300">${isOpen?'↑':'↓'}</div>
+        </div>
+      </div>
+
+      ${isOpen?`<div style="padding:14px 16px;border-top:1px solid #f5f5f4">
+
+        <!-- 圓餅 + 3格 -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+          <svg viewBox="0 0 100 100" style="width:70px;height:70px;flex-shrink:0">${makePie(mPieSlices)}</svg>
+          <div style="flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+            <div style="background:#fef3c7;border-radius:10px;padding:7px;text-align:center"><div style="font-size:9px;color:#d97706">加工</div><div style="font-weight:900;font-size:13px;color:#d97706">NT$${fmt(data.procCost)}</div></div>
+            <div style="background:#f0fdf4;border-radius:10px;padding:7px;text-align:center"><div style="font-size:9px;color:#16a34a">收入</div><div style="font-weight:900;font-size:13px;color:#16a34a">NT$${fmt(data.rev)}</div></div>
+            <div style="background:${pl>=0?'#f0fdf4':'#fef2f2'};border-radius:10px;padding:7px;text-align:center"><div style="font-size:9px;color:#6b7280">損益</div><div style="font-weight:900;font-size:13px;color:${pl>=0?'#16a34a':'#dc2626'}">${pl>=0?'▲':'▼'}${fmt(Math.abs(pl))}</div></div>
+          </div>
+        </div>
+
+        ${procItems.length?`<div style="font-size:11px;font-weight:900;color:#d97706;margin-bottom:4px">📦 運營成本（${procItems.length}筆）</div>
+        ${procItems.sort((a,b)=>a.date.localeCompare(b.date)).map(i=>{const c=catOf(PROC_CATS,i.cat);return`<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f5f5f4"><div style="flex:1;min-width:0">${tagHTML(c.icon+' '+c.label,c.color,c.bg)} <span style="font-weight:600">${esc(i.label)}</span> <span style="color:#a8a29e;font-size:10px">${i.date}${i.note?' · '+esc(i.note):''}</span></div><span style="font-weight:900;color:#dc2626;flex-shrink:0;margin-left:6px">NT$${fmt(i.amt)}</span></div>`;}).join('')}
+        <div style="text-align:right;font-size:11px;font-weight:700;color:#dc2626;margin:3px 0 8px">小計 NT$${fmt(data.procCost)}</div>`:''}
+
+        ${saleItems.length?`<div style="font-size:11px;font-weight:900;color:#16a34a;margin-bottom:4px">💰 銷售收入（${saleItems.length}筆）</div>
+        ${saleItems.sort((a,b)=>a.date.localeCompare(b.date)).map(i=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f5f5f4"><div style="flex:1;min-width:0"><span style="font-weight:600">${esc(i.label)||'（未填買家）'}</span> <span style="color:#a8a29e;font-size:10px">${i.date}${i.note?' · '+esc(i.note):''}</span></div><span style="font-weight:900;color:#16a34a;flex-shrink:0;margin-left:6px">NT$${fmt(i.amt)}</span></div>`).join('')}
+        <div style="text-align:right;font-size:11px;font-weight:700;color:#16a34a;margin-top:3px">小計 NT$${fmt(data.rev)}</div>`:''}
+
+      </div>`:''}
+    </div>`;
+  });
+
+  return html;
+}
+function toggleMonth(ym) { expandedMonths[ym]=!expandedMonths[ym]; renderReports(); }
+
+/* ── 買家/廠商單價分析 ── */
+function reportBuyerHTML() {
+  if (!DB.sales.length) return `<div class="card p-6" style="text-align:center;color:#a8a29e;font-size:13px">尚無銷售記錄</div>`;
+
+  const COLORS = ['#15803d','#0369a1','#d97706','#7c3aed','#db2777','#0891b2','#92400e','#6b7280'];
+
+  // 按買家彙整
+  const bMap = {};
+  DB.sales.forEach(s => {
+    const key = (s.buyer||'（未填買家）').trim();
+    if (!bMap[key]) bMap[key] = { revenue:0, kg:0, count:0, dates:[], products:new Set(), channels:new Set() };
+    bMap[key].revenue += s.revenue;
+    bMap[key].kg      += s.kg||0;
+    bMap[key].count   += 1;
+    if (s.date||s.dateFrom) bMap[key].dates.push(s.date||s.dateFrom);
+    if (s.product) bMap[key].products.add(s.product);
+    if (s.channel) bMap[key].channels.add(s.channel);
+  });
+
+  const buyers = Object.entries(bMap).map(([name,v])=>({
+    name, revenue:v.revenue, kg:v.kg, count:v.count,
+    avgPrice: v.kg>0 ? (v.revenue/v.kg) : 0,
+    lastDate: v.dates.sort().at(-1)||'',
+    products: [...v.products].map(id=>SALE_PRODS.find(p=>p.id===id)?.label||id).join('、'),
+    channels: [...v.channels].map(id=>CHANNELS.find(c=>c.id===id)?.label||id).join('、'),
+  })).sort((a,b)=>b.avgPrice-a.avgPrice);
+
+  const maxAvg  = Math.max(...buyers.map(b=>b.avgPrice), 1);
+  const totalRev = DB.sales.reduce((s,x)=>s+x.revenue,0);
+  const best = buyers[0];
+
+  // ── 圓餅1：收入佔比（按買家）──
+  const revPieSlices = buyers.map((b,i)=>({label:b.name, value:b.revenue, color:COLORS[i%COLORS.length]}));
+  const revPiePaths  = makePie(revPieSlices);
+
+  // ── 圓餅2：銷售管道佔比（按channel）──
+  const chMap2 = {};
+  DB.sales.forEach(s=>{ const c=s.channel||'other'; if(!chMap2[c]) chMap2[c]=0; chMap2[c]+=s.revenue; });
+  const chPieSlices = Object.entries(chMap2).map(([id,v],i)=>({label:CHANNELS.find(c=>c.id===id)?.label||id, value:v, color:COLORS[i%COLORS.length]}));
+  const chPiePaths  = makePie(chPieSlices, 50);
+
+  // ── SVG 橫向單價條形圖 ──
+  const barH=26, gap=8, barTop=18;
+  const chartH = buyers.length*(barH+gap)+barTop+10;
+  let bars='';
+  buyers.forEach((b,i)=>{
+    const pct=b.avgPrice/maxAvg;
+    const y=barTop+i*(barH+gap);
+    const clr=COLORS[i%COLORS.length];
+    const bw=Math.max(pct*82,3); // max 82% to leave room for label
+    bars+=`<rect x="0" y="${y}" width="${bw}%" height="${barH}" rx="5" fill="${clr}" opacity="0.88"/>
+    <text x="4" y="${y+17}" font-size="10" font-weight="700" fill="white">${esc(b.name.slice(0,9))}${b.name.length>9?'…':''}</text>
+    <text x="${bw+1}%" y="${y+17}" font-size="10" font-weight="900" fill="${clr}" text-anchor="start"> $${Math.round(b.avgPrice)}/kg</text>`;
+  });
+
+  return `
+  <!-- 最佳買家 banner -->
+  <div class="card p-4 mb-3" style="border:2px solid #fde68a;background:linear-gradient(135deg,#fffbeb,#fef9c3)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-size:32px">🏆</div>
+      <div>
+        <div style="font-size:11px;color:#92400e;font-weight:700">目前最佳單價買家</div>
+        <div style="font-size:20px;font-weight:900;color:#78350f;font-family:serif">${esc(best.name)}</div>
+        <div style="font-size:13px;color:#d97706;font-weight:700">均價 NT$${Math.round(best.avgPrice)}/kg · 累計 NT$${fmt(best.revenue)}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 單價條形圖 -->
+  <div class="card p-4 mb-3">
+    <div style="font-weight:900;font-size:14px;margin-bottom:4px">📊 各買家平均單價（高→低）</div>
+    <div style="font-size:10px;color:#a8a29e;margin-bottom:8px">橫條長度代表相對單價</div>
+    <svg viewBox="0 0 300 ${chartH}" width="100%" style="display:block;overflow:visible">
+      <text x="0" y="13" font-size="9" fill="#a8a29e">元/kg</text>
+      ${bars}
+    </svg>
+  </div>
+
+  <!-- 兩個圓餅並排 -->
+  <div class="card p-4 mb-3">
+    <div style="font-weight:900;font-size:14px;margin-bottom:12px">🥧 銷售比重分析</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+      <!-- 買家收入佔比 -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px;text-align:center">買家收入佔比</div>
+        <svg viewBox="0 0 100 100" width="100%" style="display:block;max-width:120px;margin:0 auto">${revPiePaths}</svg>
+        <div style="margin-top:8px;space-y:4px">
+          ${revPieSlices.map((s,i)=>{const pct=totalRev>0?Math.round(s.value/totalRev*100):0;return`<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px"><div style="width:8px;height:8px;border-radius:50%;background:${s.color};flex-shrink:0"></div><span style="font-size:10px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.label)}</span><span style="font-size:10px;font-weight:700;color:#374151;flex-shrink:0">${pct}%</span></div>`;}).join('')}
+        </div>
+      </div>
+
+      <!-- 渠道佔比 -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px;text-align:center">銷售渠道佔比</div>
+        <svg viewBox="0 0 100 100" width="100%" style="display:block;max-width:120px;margin:0 auto">${chPiePaths}</svg>
+        <div style="margin-top:8px">
+          ${chPieSlices.map((s,i)=>{const pct=totalRev>0?Math.round(s.value/totalRev*100):0;return`<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px"><div style="width:8px;height:8px;border-radius:50%;background:${s.color};flex-shrink:0"></div><span style="font-size:10px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.label)}</span><span style="font-size:10px;font-weight:700;color:#374151;flex-shrink:0">${pct}%</span></div>`;}).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 買家明細卡 -->
+  <div class="card p-4 mb-3">
+    <div style="font-weight:900;font-size:14px;margin-bottom:10px">🏪 買家明細</div>
+    ${buyers.map((b,i)=>{
+      const revPct=totalRev>0?Math.round(b.revenue/totalRev*100):0;
+      const clr=COLORS[i%COLORS.length];
+      const rank=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
+      return`<div style="padding:10px 0;border-bottom:1px solid #f5f5f4">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:15px">${rank}</span>
+              <span style="font-weight:900;font-size:15px">${esc(b.name)}</span>
+              ${b.avgPrice===maxAvg?`<span style="font-size:10px;background:#fef3c7;color:#d97706;padding:1px 6px;border-radius:6px;font-weight:700">最高單價</span>`:''}
+            </div>
+            <div style="font-size:11px;color:#78716c;margin-top:2px">
+              ${b.count}筆 · ${b.kg>0?b.kg+'kg · ':''}最近 ${b.lastDate||'—'}
+              ${b.products?`<br>${esc(b.products)}`:''}
+              ${b.channels?`<span style="color:#0369a1"> · ${esc(b.channels)}</span>`:''}
+            </div>
+          </div>
+          <div style="text-align:right;margin-left:8px;flex-shrink:0">
+            <div style="font-weight:900;font-size:18px;color:${clr}">$${Math.round(b.avgPrice)}<span style="font-size:10px">/kg</span></div>
+            <div style="font-size:11px;color:#78716c">NT$${fmt(b.revenue)}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="bar" style="flex:1"><div class="bar-fill" style="width:${revPct}%;background:${clr}"></div></div>
+          <span style="font-size:10px;color:#a8a29e;width:26px;text-align:right;flex-shrink:0">${revPct}%</span>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+
+  <!-- 策略建議 -->
+  <div class="card p-4" style="border-left:4px solid #166534">
+    <div style="font-weight:900;font-size:13px;color:#166534;margin-bottom:8px">💡 市場策略建議</div>
+    <div style="font-size:12px;color:#374151;line-height:1.9">
+      ${buyers.length>=2?`
+      ✅ <b>${esc(best.name)}</b> 均價最高（NT$${Math.round(best.avgPrice)}/kg），建議主力供貨<br>
+      ⚠️ <b>${esc(buyers[buyers.length-1].name)}</b> 均價最低（NT$${Math.round(buyers[buyers.length-1].avgPrice)}/kg），可考慮調整比例<br>
+      ${buyers.length>=3?`📊 前三名平均：NT$${Math.round((buyers[0].avgPrice+buyers[1].avgPrice+buyers[2].avgPrice)/3)}/kg`:''}
+      `:`目前 ${buyers.length} 位買家，累積更多資料後分析更準確`}
+    </div>
+  </div>`;
+}
+
+/* ── 結算作帳 ── */
+// 結算成本類型對應（從 ERP 各模塊映射到會計科目）
+const ACCT_CATS = [
+  { id:'purchase',  label:'購買成本',   icon:'🛒', color:'#7c3aed', bg:'#ede9fe',
+    match: o => ['spray','fertilize','other'].includes(o.cat) && o._src==='farm' ||
+                ['supply_pack','misc'].includes(o.cat) && o._src==='proc' },
+  { id:'labor',     label:'人事成本',   icon:'👥', color:'#1d4ed8', bg:'#dbeafe',
+    match: o => o.cat==='labor' && o._src==='farm' ||
+                ['harvest_labor','manpower','tie_cost'].includes(o.cat) && o._src==='proc' },
+  { id:'supply',    label:'消耗品',     icon:'📦', color:'#d97706', bg:'#fef3c7',
+    match: o => ['ridge','irrigate'].includes(o.cat) && o._src==='farm' ||
+                ['fuel','utility'].includes(o.cat) && o._src==='proc' },
+  { id:'other',     label:'其他開銷',   icon:'📋', color:'#6b7280', bg:'#f3f4f6',
+    match: o => false }, // 剩餘全歸此
+];
+
+function classifyAcct(item) {
+  for (const cat of ACCT_CATS.slice(0,-1)) {
+    if (cat.match(item)) return cat.id;
+  }
+  return 'other';
+}
+
+function reportSettlementHTML() {
+  const saved = DB.settlements||[];
+
+  let previewHTML = '';
+
+  if (stFrom && stTo && settlePlots.length > 0) {
+    const from=stFrom, to=stTo;
+    const inRange = d => d && d >= from && d <= to;
+    const inPlot  = ids => (Array.isArray(ids)?ids:[ids].filter(Boolean)).some(id=>settlePlots.includes(id));
+
+    // 種植作業
+    const farmRows = DB.ops.filter(o => inRange(o.date) && inPlot(Array.isArray(o.plotIds)?o.plotIds:[o.plotId].filter(Boolean))).map(o=>({...o,_src:'farm'}));
+    // 運營成本
+    const procRows = DB.proc.filter(o => inRange(o.date)).map(o=>({...o,_src:'proc'}));
+    // 銷售收入
+    const saleRows = DB.sales.filter(s => {
+      const d=s.date||s.dateFrom;
+      const plotMatch = !s.plotId || settlePlots.includes(s.plotId);
+      return inRange(d) && plotMatch;
+    });
+
+    const allCostRows = [...farmRows, ...procRows];
+    const saleTotal = saleRows.reduce((s,x)=>s+x.revenue,0);
+    const totalCost = allCostRows.reduce((s,o)=>s+o.amount,0);
+    const profit    = saleTotal - totalCost;
+    const plotNames = settlePlots.map(id=>DB.plots.find(p=>p.id===id)?.name||'?').join('、');
+
+    // 按會計科目分組
+    const acctGroups = {};
+    ACCT_CATS.forEach(c => { acctGroups[c.id]={rows:[],total:0}; });
+    allCostRows.forEach(o => {
+      const aid = classifyAcct(o);
+      acctGroups[aid].rows.push(o);
+      acctGroups[aid].total += o.amount;
+    });
+
+    // 成本結構圓餅
+    const acctPieSlices = ACCT_CATS.map(c=>({label:c.label,value:acctGroups[c.id].total,color:c.color})).filter(x=>x.value>0);
+    const acctPiePaths  = makePie(acctPieSlices);
+
+    // 收入圓餅（按產品）
+    const prodMap={};
+    saleRows.forEach(s=>{ const k=SALE_PRODS.find(p=>p.id===s.product)?.label||'其他'; if(!prodMap[k]) prodMap[k]=0; prodMap[k]+=s.revenue; });
+    const PCOLS=['#16a34a','#0369a1','#d97706','#7c3aed','#0891b2'];
+    const salePieSlices=Object.entries(prodMap).map(([l,v],i)=>({label:l,value:v,color:PCOLS[i%5]}));
+    const salePiePaths =makePie(salePieSlices);
+
+    previewHTML = `
+    <div class="card p-4 mt-4" style="border:2px solid ${profit>=0?'#bbf7d0':'#fecaca'}">
+
+      <!-- 結算標題 -->
+      <div style="background:${profit>=0?'linear-gradient(135deg,#052e16,#166534)':'linear-gradient(135deg,#450a0a,#991b1b)'};border-radius:14px;padding:16px;margin-bottom:14px;text-align:center;color:#fff">
+        <div style="font-size:11px;opacity:.75;margin-bottom:2px">結算區間</div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:2px">${from} ～ ${to}</div>
+        <div style="font-size:11px;opacity:.7;margin-bottom:10px">田區：${esc(plotNames)}</div>
+        <div style="font-size:11px;font-weight:700;opacity:.8">本期淨損益</div>
+        <div style="font-size:32px;font-weight:900;font-family:serif;color:${profit>=0?'#86efac':'#fca5a5'}">${profit>=0?'▲ +':'▼ '}NT$${fmt(Math.abs(profit))}</div>
+      </div>
+
+      <!-- 三欄金額 -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+        <div style="background:#fef2f2;border-radius:12px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:#ef4444">總成本</div>
+          <div style="font-weight:900;font-size:15px;color:#dc2626">NT$${fmt(totalCost)}</div>
+          <div style="font-size:9px;color:#a8a29e">${allCostRows.length}筆</div>
+        </div>
+        <div style="background:#f0fdf4;border-radius:12px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:#16a34a">總收入</div>
+          <div style="font-weight:900;font-size:15px;color:#16a34a">NT$${fmt(saleTotal)}</div>
+          <div style="font-size:9px;color:#a8a29e">${saleRows.length}筆</div>
+        </div>
+        <div style="background:${profit>=0?'#f0fdf4':'#fef2f2'};border-radius:12px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:#6b7280">損益</div>
+          <div style="font-weight:900;font-size:15px;color:${profit>=0?'#16a34a':'#dc2626'}">${profit>=0?'▲':'▼'}NT$${fmt(Math.abs(profit))}</div>
+        </div>
+      </div>
+
+      <!-- 兩個圓餅並排 -->
+      ${(acctPieSlices.length||salePieSlices.length)?`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+        ${acctPieSlices.length?`<div>
+          <div style="font-size:11px;font-weight:700;text-align:center;margin-bottom:6px">成本結構</div>
+          <svg viewBox="0 0 100 100" width="100%" style="display:block;max-width:110px;margin:0 auto">${acctPiePaths}</svg>
+          <div style="margin-top:6px">${acctPieSlices.map(s=>{const pct=totalCost>0?Math.round(s.value/totalCost*100):0;return`<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px"><div style="width:7px;height:7px;border-radius:50%;background:${s.color};flex-shrink:0"></div><span style="font-size:10px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.label}</span><b style="font-size:10px;flex-shrink:0">${pct}%</b></div>`;}).join('')}</div>
+        </div>`:'<div></div>'}
+        ${salePieSlices.length?`<div>
+          <div style="font-size:11px;font-weight:700;text-align:center;margin-bottom:6px">收入來源</div>
+          <svg viewBox="0 0 100 100" width="100%" style="display:block;max-width:110px;margin:0 auto">${salePiePaths}</svg>
+          <div style="margin-top:6px">${salePieSlices.map(s=>{const pct=saleTotal>0?Math.round(s.value/saleTotal*100):0;return`<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px"><div style="width:7px;height:7px;border-radius:50%;background:${s.color};flex-shrink:0"></div><span style="font-size:10px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.label}</span><b style="font-size:10px;flex-shrink:0">${pct}%</b></div>`;}).join('')}</div>
+        </div>`:'<div></div>'}
+      </div>`:''}
+
+      <!-- 成本科目明細（四類） -->
+      ${ACCT_CATS.map(cat=>{
+        const grp=acctGroups[cat.id];
+        if(!grp.rows.length) return '';
+        return `<div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div style="font-size:12px;font-weight:900" style="color:${cat.color}">${tagHTML(cat.icon+' '+cat.label,cat.color,cat.bg)}</div>
+            <b style="font-size:13px;color:#dc2626">NT$${fmt(grp.total)}</b>
+          </div>
+          ${grp.rows.sort((a,b)=>a.date.localeCompare(b.date)).map(o=>{
+            const src=o._src==='farm'?catOf(FARM_CATS,o.cat):catOf(PROC_CATS,o.cat);
+            const pids=Array.isArray(o.plotIds)?o.plotIds:[o.plotId].filter(Boolean);
+            const pname=o._src==='farm'?pids.map(id=>DB.plots.find(p=>p.id===id)?.name||'?').join('、'):'';
+            return`<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid #f5f5f4">
+              <div style="flex:1;min-width:0">${tagHTML(src.icon+' '+src.label,src.color,src.bg)} ${esc(o.product)} <span style="color:#a8a29e">${o.date}${pname?' · '+esc(pname):''}${o.qty?' · '+esc(o.qty):''}</span></div>
+              <b style="color:#dc2626;flex-shrink:0;margin-left:4px">NT$${fmt(o.amount)}</b>
+            </div>`;
+          }).join('')}
+        </div>`;
+      }).join('')}
+
+      <!-- 收入明細 -->
+      ${saleRows.length?`<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          ${tagHTML('💰 收入項目','#15803d','#dcfce7')}
+          <b style="font-size:13px;color:#16a34a">NT$${fmt(saleTotal)}</b>
+        </div>
+        ${saleRows.sort((a,b)=>(a.date||a.dateFrom).localeCompare(b.date||b.dateFrom)).map(s=>{
+          const prod=SALE_PRODS.find(p=>p.id===s.product);
+          return`<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid #f5f5f4">
+            <div style="flex:1;min-width:0">${prod?tagHTML(prod.icon+' '+prod.label,'#15803d','#dcfce7'):''} ${esc(s.buyer||'—')} <span style="color:#a8a29e">${s.date||s.dateFrom}${s.kg>0?' · '+s.kg+'kg':''}</span></div>
+            <b style="color:#16a34a;flex-shrink:0;margin-left:4px">NT$${fmt(s.revenue)}</b>
+          </div>`;
+        }).join('')}
+      </div>`:''}
+
+      <!-- 儲存 -->
+      <div style="padding-top:10px;border-top:1px solid #e7e5e4">
+        <button onclick="saveSettlement()" class="btn btn-g btn-lg">💾 儲存此份結算單</button>
+      </div>
+    </div>`;
+
+    // 暫存本次結算資料供儲存用
+    window._pendingSettlement = { from, to, profit, plotNames,
+      totalCost:fmt(totalCost), saleTotal:fmt(saleTotal),
+      farmTotal:fmt(farmRows.reduce((s,o)=>s+o.amount,0)),
+      procTotal:fmt(procRows.reduce((s,o)=>s+o.amount,0)),
+      purchase:fmt(acctGroups.purchase.total), labor:fmt(acctGroups.labor.total),
+      supply:fmt(acctGroups.supply.total), other:fmt(acctGroups.other.total),
+    };
+  }
+
+  // 已儲存結算單
+  let savedHTML = '';
+  if (saved.length) {
+    savedHTML = `<div class="card p-4 mt-4">
+      <div style="font-weight:900;font-size:13px;margin-bottom:10px">📁 已儲存結算單（${saved.length}份）</div>
+      ${saved.slice().reverse().map(r=>`
+      <div style="padding:10px 0;border-bottom:1px solid #f5f5f4">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-size:12px;font-weight:700">${esc(r.from)} ～ ${esc(r.to)}</div>
+            <div style="font-size:11px;color:#78716c">${esc(r.plotNames)}</div>
+            <div style="font-size:10px;color:#a8a29e;margin-top:2px">
+              購買 NT$${esc(r.purchase||'0')} · 人事 NT$${esc(r.labor||'0')} · 消耗品 NT$${esc(r.supply||'0')} · 其他 NT$${esc(r.other||'0')}<br>
+              收入 NT$${esc(r.saleTotal)} · 成本 NT$${esc(r.totalCost)}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:8px">
+            <div style="font-weight:900;font-size:14px;color:${r.profit>=0?'#16a34a':'#dc2626'}">${r.profit>=0?'▲':'▼'} NT$${fmt(Math.abs(r.profit))}</div>
+            <button onclick="delSettlement('${r.id}')" style="color:#d6d3d1;font-size:14px;background:none;border:none;cursor:pointer">✕</button>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  return `
+  <div class="card p-4">
+    <div style="font-weight:900;font-size:16px;font-family:serif;margin-bottom:4px">🧾 結算作帳</div>
+    <div style="font-size:12px;color:#78716c;margin-bottom:14px">設定日期區間與田區，自動彙整購買成本、人事成本、消耗品、其他開銷與收入</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">開始日期 *</div>
+          <input class="inp" id="st_from" type="date" value="${stFrom}" onchange="stFrom=this.value;renderReports()">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">結束日期 *</div>
+          <input class="inp" id="st_to" type="date" value="${stTo}" onchange="stTo=this.value;renderReports()">
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:6px">田區（可多選）*</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <button onclick="toggleAllSettlePlots()" class="plot-btn ${settlePlots.length===DB.plots.length&&DB.plots.length>0?'active':''}">全選</button>
+          ${DB.plots.map(p=>`<button onclick="toggleSettlePlot('${p.id}')" class="plot-btn ${settlePlots.includes(p.id)?'active':''}">${esc(p.name)}</button>`).join('')}
+        </div>
+      </div>
+
+      <!-- 成本科目說明 -->
+      <div style="background:#f5f5f4;border-radius:12px;padding:10px 12px">
+        <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px">📌 成本科目分類說明</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+          ${ACCT_CATS.map(c=>`<div style="font-size:10px;color:#6b7280">${tagHTML(c.icon+' '+c.label,c.color,c.bg)}</div>`).join('')}
+        </div>
+        <div style="font-size:10px;color:#a8a29e;margin-top:4px">農資/耗材→購買；人工/綁蔥→人事；水電/油→消耗品</div>
+      </div>
+
+      ${settlePlots.length>0&&stFrom&&stTo
+        ? `<button onclick="renderReports()" class="btn btn-g btn-lg">🔍 產生結算單</button>`
+        : `<div style="background:#f5f5f4;border-radius:12px;padding:10px;text-align:center;font-size:12px;color:#a8a29e">請選擇日期區間與至少一個田區</div>`
+      }
+    </div>
+  </div>
+  ${previewHTML}
+  ${savedHTML}`;
+}
+
+function toggleSettlePlot(id) {
+  settlePlots = settlePlots.includes(id) ? settlePlots.filter(x=>x!==id) : [...settlePlots,id];
+  renderReports();
+}
+function toggleAllSettlePlots() {
+  settlePlots = settlePlots.length===DB.plots.length ? [] : DB.plots.map(p=>p.id);
+  renderReports();
+}
+function saveSettlement() {
+  const d = window._pendingSettlement;
+  if (!d) return;
+  if (!DB.settlements) DB.settlements = [];
+  DB.settlements.push({ id:uid(), ...d, savedAt:today() });
+  try { localStorage.setItem('hp6_settlements', JSON.stringify(DB.settlements)); } catch {}
+  window._pendingSettlement = null;
+  alert('✅ 結算單已儲存！');
+  renderReports();
+}
+function delSettlement(id) {
+  DB.settlements = (DB.settlements||[]).filter(x=>x.id!==id);
+  try { localStorage.setItem('hp6_settlements', JSON.stringify(DB.settlements)); } catch {}
+  renderReports();
+}
+// 載入已儲存結算單
+try { DB.settlements = JSON.parse(localStorage.getItem('hp6_settlements'))||[]; } catch { DB.settlements=[]; }
+
+/* ════════════════════════════════════════════════════════
+   ██████  天氣／灌溉日誌
+════════════════════════════════════════════════════════ */
+const WEATHER_TYPES = [
+  {id:'sunny',   label:'晴天',   icon:'☀️',  color:'#d97706', bg:'#fef3c7'},
+  {id:'cloudy',  label:'多雲',   icon:'⛅',  color:'#6b7280', bg:'#f3f4f6'},
+  {id:'rain',    label:'下雨',   icon:'🌧️',  color:'#0369a1', bg:'#dbeafe'},
+  {id:'heavy',   label:'大雨',   icon:'⛈️',  color:'#1e40af', bg:'#dbeafe'},
+  {id:'wind',    label:'強風',   icon:'💨',  color:'#0891b2', bg:'#cffafe'},
+  {id:'hot',     label:'高溫',   icon:'🔥',  color:'#dc2626', bg:'#fef2f2'},
+];
+const IRRIGATE_TYPES = [
+  {id:'drip',    label:'滴灌',   icon:'💧'},
+  {id:'spray',   label:'噴灌',   icon:'🚿'},
+  {id:'flood',   label:'漫灌',   icon:'🌊'},
+  {id:'none',    label:'未灌溉', icon:'⛔'},
+];
+
+let wCat = '';
+let wPlots = [];
+
+function farmWeatherHTML() {
+  const actPlots = DB.plots.filter(p=>!p.closed&&!p.sold);
+  const recent = [...DB.weather].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30);
+
+  // 天氣格選擇
+  let wGrid = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">`;
+  WEATHER_TYPES.forEach(c=>{
+    const a=wCat===c.id;
+    wGrid+=`<button onclick="setWCat('${c.id}')" class="cat-btn ${a?'active':''}" style="--c:${c.color};--bg:${c.bg}">
+      <span style="font-size:20px">${c.icon}</span><span class="lbl">${c.label}</span></button>`;
+  });
+  wGrid+=`</div>`;
+
+  // 統計：近 30 天天氣天數
+  const last30 = DB.weather.filter(w=>w.date>=new Date(Date.now()-30*864e5).toISOString().slice(0,10));
+  const wxCount = {};
+  last30.forEach(w=>{ wxCount[w.weather]=(wxCount[w.weather]||0)+1; });
+  const irrCount = {};
+  last30.forEach(w=>{ if(w.irrigate&&w.irrigate!=='none') irrCount[w.irrigate]=(irrCount[w.irrigate]||0)+1; });
+  const totalIrr = Object.values(irrCount).reduce((s,v)=>s+v,0);
+
+  return `
+  <!-- 登錄表單 -->
+  <div class="card p-4 mb-4">
+    <div style="font-weight:900;font-size:16px;font-family:serif;margin-bottom:12px">🌤️ 天氣／灌溉日誌</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">日期</div>
+        <input class="inp" type="date" id="wDate" value="${today()}">
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:6px">天氣狀況 *</div>
+        ${wGrid}
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">最高溫（°C）</div>
+          <input class="inp" type="number" id="wTempH" placeholder="35">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">最低溫（°C）</div>
+          <input class="inp" type="number" id="wTempL" placeholder="22">
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">降雨量（mm，選填）</div>
+        <input class="inp" type="number" id="wRain" placeholder="0">
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:6px">灌溉方式</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px" id="wIrrBtns">
+          ${IRRIGATE_TYPES.map(t=>`<button onclick="setWIrr('${t.id}')" id="wirr_${t.id}" class="plot-btn">${t.icon} ${t.label}</button>`).join('')}
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">灌溉田區（選填）</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${actPlots.map(p=>`<button onclick="toggleWPlot('${p.id}')" id="wplot_${p.id}" class="plot-btn ${wPlots.includes(p.id)?'active':''}">${esc(p.name)}</button>`).join('')}
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#78716c;margin-bottom:4px">備註</div>
+        <textarea class="inp" id="wNote" rows="2" placeholder="颱風預報、病蟲害觀察、特殊狀況…"></textarea>
+      </div>
+
+      <button id="wSaveBtn" onclick="saveWeather()" class="btn btn-b btn-lg">儲存日誌</button>
+    </div>
+  </div>
+
+  <!-- 近 30 天統計 -->
+  ${last30.length?`<div class="card p-4 mb-4">
+    <div style="font-weight:900;font-size:13px;margin-bottom:10px">📊 近 30 天統計</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+      ${WEATHER_TYPES.filter(t=>wxCount[t.id]).map(t=>`
+      <div style="background:${t.bg};border-radius:10px;padding:5px 10px;font-size:11px;font-weight:700;color:${t.color}">${t.icon} ${t.label} <b>${wxCount[t.id]}</b>天</div>`).join('')}
+    </div>
+    ${totalIrr>0?`<div style="font-size:11px;color:#6b7280">灌溉 ${totalIrr} 次　${Object.entries(irrCount).map(([id,n])=>{const t=IRRIGATE_TYPES.find(x=>x.id===id);return t?`${t.icon}${t.label}×${n}`:''}).join('　')}</div>`:''}
+  </div>`:''}
+
+  <!-- 日誌列表 -->
+  <div class="card p-4">
+    <div style="font-weight:700;font-size:13px;color:#57534e;margin-bottom:10px">📋 最近日誌（${recent.length}筆）</div>
+    ${recent.length===0?'<div style="text-align:center;color:#a8a29e;font-size:13px;padding:16px">尚無記錄</div>':
+      recent.map(w=>{
+        const wt=WEATHER_TYPES.find(t=>t.id===w.weather)||WEATHER_TYPES[0];
+        const it=IRRIGATE_TYPES.find(t=>t.id===w.irrigate);
+        const iPlots=(w.irrigatePlots||[]).map(id=>DB.plots.find(p=>p.id===id)?.name||'?').join('、');
+        return`<div style="padding:8px 0;border-bottom:1px solid #f5f5f4">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">
+                <span style="font-weight:700;font-size:13px;color:#374151">${w.date}</span>
+                ${tagHTML(wt.icon+' '+wt.label, wt.color, wt.bg)}
+                ${it&&it.id!=='none'?tagHTML(it.icon+' '+it.label,'#0369a1','#dbeafe'):''}
+              </div>
+              <div style="font-size:11px;color:#78716c">
+                ${w.tempH||w.tempL?`🌡️ ${w.tempL??'—'}～${w.tempH??'—'}°C　`:''}
+                ${w.rain>0?`🌧️ ${w.rain}mm　`:''}
+                ${iPlots?`田區：${esc(iPlots)}`:''}
+              </div>
+              ${w.note?`<div style="font-size:11px;color:#a8a29e;margin-top:2px">${esc(w.note)}</div>`:''}
+            </div>
+            <button onclick="delWeather('${w.id}')" style="color:#d6d3d1;font-size:13px;background:none;border:none;cursor:pointer;flex-shrink:0;margin-left:8px">✕</button>
+          </div>
+        </div>`;
+      }).join('')
+    }
+  </div>`;
+}
+
+let _wIrr = 'none';
+function setWCat(c){ wCat=c; renderFarm(); }
+function setWIrr(id){
+  _wIrr=id;
+  document.querySelectorAll('[id^="wirr_"]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('wirr_'+id)?.classList.add('active');
+}
+function toggleWPlot(id){
+  wPlots=wPlots.includes(id)?wPlots.filter(x=>x!==id):[...wPlots,id];
+  document.getElementById('wplot_'+id)?.classList.toggle('active');
+}
+function saveWeather(){
+  if(!wCat){alert('請選擇天氣狀況');return;}
+  const rec={
+    id:uid(), date:document.getElementById('wDate').value,
+    weather:wCat,
+    tempH:document.getElementById('wTempH').value||null,
+    tempL:document.getElementById('wTempL').value||null,
+    rain:parseFloat(document.getElementById('wRain').value)||0,
+    irrigate:_wIrr,
+    irrigatePlots:wPlots.slice(),
+    note:document.getElementById('wNote').value,
+  };
+  DB.weather.unshift(rec); saveDB();
+  wCat=''; _wIrr='none'; wPlots=[];
+  const btn=document.getElementById('wSaveBtn');
+  btn.textContent='✓ 已儲存！'; btn.style.background='#22c55e';
+  setTimeout(()=>renderFarm(), 1500);
+}
+function delWeather(id){ DB.weather=DB.weather.filter(w=>w.id!==id); saveDB(); renderFarm(); }
+
+/* ════════════════════════════════════════════════════════
+   ██████  備份 / 還原
+════════════════════════════════════════════════════════ */
+function exportBackup() {
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data: {
+      plots:       DB.plots,
+      ops:         DB.ops,
+      agri:        DB.agri,
+      proc:        DB.proc,
+      sales:       DB.sales,
+      weather:     DB.weather,
+      settlements: DB.settlements||[],
+    }
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `鋐品農產行備份_${today()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importBackup() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const payload = JSON.parse(ev.target.result);
+        if (!payload.data) throw new Error('格式錯誤');
+        const d = payload.data;
+        if (!confirm(`確定要還原備份？\n匯出時間：${payload.exportedAt?.slice(0,10)||'未知'}\n\n⚠️ 這會覆蓋目前所有資料，無法還原。`)) return;
+        DB.plots       = d.plots       || [];
+        DB.ops         = d.ops         || [];
+        DB.agri        = d.agri        || [];
+        DB.proc        = d.proc        || [];
+        DB.sales       = d.sales       || [];
+        DB.weather     = d.weather     || [];
+        DB.settlements = d.settlements || [];
+        saveDB();
+        try { localStorage.setItem('hp6_settlements', JSON.stringify(DB.settlements)); } catch {}
+        alert('✅ 還原成功！');
+        renderAll();
+      } catch(err) {
+        alert('❌ 還原失敗：' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function openBackupModal() {
+  openModal(`
+    <div style="font-weight:900;font-size:16px;font-family:serif;margin-bottom:16px">💾 資料備份 / 還原</div>
+
+    <!-- 備份說明 -->
+    <div style="background:#f0fdf4;border-radius:12px;padding:14px;margin-bottom:12px">
+      <div style="font-weight:700;font-size:13px;color:#166534;margin-bottom:6px">📤 匯出備份</div>
+      <div style="font-size:12px;color:#374151;line-height:1.7;margin-bottom:10px">
+        將所有資料（田區、作業記錄、銷售、天氣日誌、結算單）下載為 JSON 檔案。<br>
+        建議定期備份，或在換電腦/換瀏覽器前備份。
+      </div>
+      <button onclick="exportBackup()" class="btn btn-g btn-lg">📥 下載備份檔（JSON）</button>
+    </div>
+
+    <!-- 還原說明 -->
+    <div style="background:#fef3c7;border-radius:12px;padding:14px">
+      <div style="font-weight:700;font-size:13px;color:#d97706;margin-bottom:6px">📂 匯入還原</div>
+      <div style="font-size:12px;color:#374151;line-height:1.7;margin-bottom:10px">
+        選擇先前下載的備份 JSON 檔案，還原所有資料。<br>
+        <span style="color:#dc2626;font-weight:700">⚠️ 注意：這會覆蓋目前所有資料，請謹慎操作。</span>
+      </div>
+      <button onclick="importBackup()" class="btn btn-a btn-lg">📂 選擇備份檔還原</button>
+    </div>
+
+    <!-- Mac 使用說明 -->
+    <div style="background:#f5f5f4;border-radius:12px;padding:14px;margin-top:12px">
+      <div style="font-weight:700;font-size:12px;color:#374151;margin-bottom:6px">💡 Mac 使用小技巧</div>
+      <div style="font-size:11px;color:#6b7280;line-height:1.8">
+        • 備份檔預設存到「下載」資料夾<br>
+        • 建議每週備份一次到 iCloud Drive 或外接碟<br>
+        • 換瀏覽器前記得先備份，localStorage 不互通<br>
+        • 用 Automator 做成 .app 後，資料存在 Safari 的 localStorage
+      </div>
+    </div>
+  `);
+}
+
+/* ════════════════════════════════════════════════════════
+   ██████  SOP — 粉蔥種植標準作業程序（100天）
+════════════════════════════════════════════════════════ */
+
+// SOP 資料：每個作業節點
+const SOP_STEPS = [
+  { id:'s0',  dayFrom:0,  dayTo:0,  phase:'定植',
+    type:'agri',   icon:'🌱', color:'#15803d', bg:'#dcfce7',
+    title:'定植 + 保護藥 + 灌根',
+    items:['定植苗','噴保護藥（定植後立即）','灌根：木黴菌 + 樂根'],
+    note:'排水最重要' },
+
+  { id:'s1',  dayFrom:7,  dayTo:10, phase:'開根',
+    type:'agri',   icon:'🌿', color:'#16a34a', bg:'#dcfce7',
+    title:'灌根（第一次開根）',
+    items:['木黴菌 + 樂根 + 黃腐酸'],
+    note:'第一次開根，促進根系發展' },
+
+  { id:'s2',  dayFrom:10, dayTo:12, phase:'開根',
+    type:'agri',   icon:'💧', color:'#0891b2', bg:'#cffafe',
+    title:'葉面 亞磷酸鉀 + 除草劑',
+    items:['葉面噴施亞磷酸鉀','除草劑定向噴行間'],
+    note:'⚠️ 除草劑前後24小時避免噴其他資材' },
+
+  { id:'s3',  dayFrom:18, dayTo:20, phase:'分蘖前',
+    type:'agri',   icon:'🌿', color:'#16a34a', bg:'#dcfce7',
+    title:'灌根（第二次）',
+    items:['木黴菌 + 樂根'] },
+
+  { id:'s4',  dayFrom:21, dayTo:23, phase:'分蘖前',
+    type:'labor',  icon:'🌾', color:'#1d4ed8', bg:'#dbeafe',
+    title:'第1次追肥',
+    items:['宜農1號 1包/分地（氮為主）'],
+    note:'氮為主，促進早期生長' },
+
+  { id:'s5',  dayFrom:25, dayTo:28, phase:'分蘖期',
+    type:'agri',   icon:'⭐', color:'#d97706', bg:'#fef3c7',
+    title:'葉面肥（分蘖第一輪）⭐最重要',
+    items:['海藻精','磷酸二氫鉀','左旋胺基酸','枯草/貝萊斯芽孢桿菌','亞磷酸鉀','展著劑'],
+    note:'⭐ 分蘖關鍵期，全組上' },
+
+  { id:'s6',  dayFrom:32, dayTo:35, phase:'分蘖期',
+    type:'agri',   icon:'🌿', color:'#16a34a', bg:'#dcfce7',
+    title:'第2次追肥 + 灌根',
+    items:['宜農1號 1.5包/分地','灌根：貝萊斯/枯草芽孢桿菌 + 溶磷菌 + 樂根'] },
+
+  { id:'s7',  dayFrom:38, dayTo:42, phase:'生長期',
+    type:'agri',   icon:'🌿', color:'#16a34a', bg:'#dcfce7',
+    title:'灌根',
+    items:['木黴菌 + 樂根'] },
+
+  { id:'s8',  dayFrom:48, dayTo:52, phase:'培土期',
+    type:'supply', icon:'⛏️', color:'#92400e', bg:'#fef9ee',
+    title:'第3次追肥 + 第1次培土',
+    items:['宜農43號 1.5-2包/分地','第一次培土'],
+    note:'43號氮磷鉀平衡，搭配培土蔥白' },
+
+  { id:'s9',  dayFrom:55, dayTo:58, phase:'培土期',
+    type:'agri',   icon:'💧', color:'#0891b2', bg:'#cffafe',
+    title:'葉面 亞磷酸鉀 + 菌（最後一次亞磷）',
+    items:['亞磷酸鉀（最後一次）','枯草芽孢桿菌'],
+    note:'⚠️ 亞磷酸鉀60天前用完，之後停止' },
+
+  { id:'s10', dayFrom:68, dayTo:72, phase:'膨大期',
+    type:'supply', icon:'⛏️', color:'#92400e', bg:'#fef9ee',
+    title:'第4次追肥 + 第2次培土',
+    items:['宜農43號 1.5包/分地（鉀為主）','第二次培土（視長勢）'],
+    note:'鉀為主，充實蔥白膨大' },
+
+  { id:'s11', dayFrom:78, dayTo:82, phase:'後期',
+    type:'agri',   icon:'🌿', color:'#16a34a', bg:'#dcfce7',
+    title:'灌根',
+    items:['木黴菌 + 樂根'] },
+
+  { id:'s12', dayFrom:82, dayTo:88, phase:'後期',
+    type:'labor',  icon:'🌾', color:'#1d4ed8', bg:'#dbeafe',
+    title:'第5次追肥（高鉀）',
+    items:['宜農5號 1包/分地（高鉀）'],
+    note:'高鉀促進轉色充實' },
+
+  { id:'s13', dayFrom:85, dayTo:90, phase:'轉色期',
+    type:'agri',   icon:'🌟', color:'#7c3aed', bg:'#ede9fe',
+    title:'葉面轉色肥',
+    items:['海藻精','磷酸二氫鉀','左旋胺基酸','安盾'],
+    note:'促進葉色黑綠、轉色整齊' },
+
+  { id:'s14', dayFrom:92, dayTo:97, phase:'採收前',
+    type:'labor',  icon:'💪', color:'#db2777', bg:'#fce7f3',
+    title:'採收前衝刺肥（視情況）',
+    items:['宜農1號 1包/分地 沖施'],
+    note:'⚠️ 蔥漂亮厚實才衝，衝完3-5天內必採收' },
+
+  { id:'s15', dayFrom:98, dayTo:105, phase:'採收',
+    type:'supply', icon:'🧺', color:'#d97706', bg:'#fef3c7',
+    title:'採收',
+    items:['觀察蔥白粗度與葉色決定採收時機'],
+    note:'目標：蔥白粗、葉片黑綠厚實' },
+];
+
+const PHASE_COLORS = {
+  '定植':'#15803d','開根':'#0891b2','分蘖前':'#1d4ed8','分蘖期':'#d97706',
+  '生長期':'#16a34a','培土期':'#92400e','膨大期':'#7c3aed','後期':'#0369a1',
+  '轉色期':'#7c3aed','採收前':'#db2777','採收':'#d97706',
+};
+
+// localStorage key for SOP schedules
+const LS_SOP = 'hp6_sop_schedules';
+let DB_SOP = []; // [{id, plotId, bindDate, doneSteps:[stepId,...], note}]
+try { DB_SOP = JSON.parse(localStorage.getItem(LS_SOP))||[]; } catch { DB_SOP=[]; }
+function saveSOP(){ try{ localStorage.setItem(LS_SOP,JSON.stringify(DB_SOP)); }catch{} }
+
+// 工具：計算日期字串 + N 天
+function addDays(dateStr, n) {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate()+n);
+  return d.toISOString().slice(0,10);
+}
+// 計算今天是種植後第幾天
+function daysFromPlant(plantDate) {
+  if(!plantDate) return null;
+  return Math.floor((Date.now()-new Date(plantDate))/86400000);
+}
+
+let sopSelPlot = ''; // 目前 SOP 頁選中田區
+
+function renderSOP() {
+  const actPlots = DB.plots.filter(p=>!p.closed&&!p.sold);
+  const allPlots = DB.plots;
+
+  // 取得或建立該田區的 SOP 排程
+  let schedule = sopSelPlot ? DB_SOP.find(s=>s.plotId===sopSelPlot) : null;
+  const plot = sopSelPlot ? DB.plots.find(p=>p.id===sopSelPlot) : null;
+  const plantDate = plot?.plantDate || null;
+  const dayNow = plantDate ? daysFromPlant(plantDate) : null;
+
+  // 核心原則
+  const principles = [
+    {icon:'⚠️',text:'亞磷酸鉀嚴格60天前用完，60天後停止'},
+    {icon:'📉',text:'氮肥前期用、中後期明顯減少'},
+    {icon:'🔄',text:'菌種輪替：木黴菌與芽孢桿菌交替'},
+    {icon:'⛏️',text:'培土至少2次'},
+    {icon:'🌟',text:'後期重點：轉色 + 充實（磷鉀 + 胺基酸）'},
+  ];
+
+  let html = `
+  <!-- 標題 -->
+  <div style="border-radius:20px;padding:16px 18px;background:linear-gradient(135deg,#052e16,#14532d);color:#fff;margin-bottom:12px">
+    <div style="font-size:10px;letter-spacing:3px;opacity:.6;margin-bottom:4px">STANDARD OPERATING PROCEDURE</div>
+    <div style="font-size:18px;font-weight:900;font-family:serif;margin-bottom:2px">粉蔥種植 SOP</div>
+    <div style="font-size:12px;opacity:.75">100天版 v5.1 · 目標：蔥白粗、葉片黑綠厚實</div>
+  </div>
+
+  <!-- 田區選擇 -->
+  <div class="card p-4 mb-3">
+    <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">🌾 選擇田區（自動帶入種植日期計算排程）</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:${sopSelPlot?8:0}px">
+      <button onclick="setSopPlot('')" class="pill ${!sopSelPlot?'on':''}">僅看SOP</button>
+      ${allPlots.map(p=>`<button onclick="setSopPlot('${p.id}')" class="pill ${sopSelPlot===p.id?'on':''}">${esc(p.name)}${p.plantDate?` (Day${daysFromPlant(p.plantDate)?daysFromPlant(p.plantDate):'0'})`:''}</button>`).join('')}
+    </div>
+    ${plot&&plantDate?`<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f0fdf4;border-radius:10px">
+      <span style="font-size:20px">🌱</span>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#166534">${esc(plot.name)} — 種植日：${plantDate}</div>
+        <div style="font-size:11px;color:#16a34a">今天是種植後第 <b>${dayNow}</b> 天　${dayNow<=100?`還剩 <b>${100-dayNow}</b> 天到採收`:'已超過100天'}</div>
+      </div>
+    </div>`:''}
+    ${sopSelPlot&&!plantDate?`<div style="font-size:12px;color:#d97706;background:#fef3c7;border-radius:10px;padding:8px 12px">⚠️ 此田區尚未設定種植日期，請先在「田區」頁面編輯</div>`:''}
+  </div>
+
+  <!-- 進度條（綁定田區時顯示） -->
+  ${plantDate&&dayNow!==null?`<div class="card p-4 mb-3">
+    <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:#374151;margin-bottom:8px">
+      <span>整體進度</span>
+      <span style="color:${dayNow>=100?'#16a34a':'#d97706'}">${Math.min(dayNow,100)}/100 天</span>
+    </div>
+    <div style="height:10px;border-radius:999px;background:#e5e2db;overflow:hidden;margin-bottom:6px">
+      <div style="height:100%;border-radius:999px;background:linear-gradient(90deg,#15803d,#22c55e);width:${Math.min(dayNow/100*100,100)}%;transition:width .5s"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:#a8a29e">
+      <span>定植</span><span>分蘖(25天)</span><span>培土(50天)</span><span>轉色(85天)</span><span>採收(100天)</span>
+    </div>
+    <!-- 完成筆數 -->
+    ${schedule?`<div style="margin-top:8px;font-size:11px;color:#374151">
+      已完成 <b style="color:#16a34a">${schedule.doneSteps?.length||0}</b> / ${SOP_STEPS.length} 個作業節點
+    </div>`:''}
+  </div>`:''}
+
+  <!-- SOP 作業時程表 -->
+  <div style="margin-bottom:12px">`;
+
+  // 按 phase 分組渲染
+  let lastPhase = '';
+  SOP_STEPS.forEach(step => {
+    const isDone = schedule?.doneSteps?.includes(step.id);
+    const phColor = PHASE_COLORS[step.phase]||'#6b7280';
+
+    // 計算預計日期（若有綁定田區）
+    let dateRange = '';
+    let statusLabel = '';
+    let statusColor = '#6b7280';
+    let urgentBanner = '';
+
+    if (plantDate) {
+      const dateFrom = addDays(plantDate, step.dayFrom);
+      const dateTo   = addDays(plantDate, step.dayTo);
+      dateRange = step.dayFrom===step.dayTo ? dateFrom : `${dateFrom} ～ ${dateTo}`;
+
+      if (isDone) {
+        statusLabel = '✅ 已完成';
+        statusColor = '#16a34a';
+      } else if (dayNow !== null) {
+        if (dayNow < step.dayFrom) {
+          const daysLeft = step.dayFrom - dayNow;
+          statusLabel = `📅 還有 ${daysLeft} 天`;
+          statusColor = daysLeft<=5 ? '#d97706' : '#6b7280';
+          if (daysLeft<=3) urgentBanner = `<div style="background:#fef3c7;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;color:#d97706;margin-bottom:4px">⚡ 即將到來（${daysLeft}天後）</div>`;
+        } else if (dayNow >= step.dayFrom && dayNow <= step.dayTo) {
+          statusLabel = '🔥 現在進行！';
+          statusColor = '#dc2626';
+          urgentBanner = `<div style="background:#fef2f2;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;color:#dc2626;margin-bottom:4px">🔥 本週應執行！</div>`;
+        } else if (dayNow > step.dayTo && !isDone) {
+          const overdue = dayNow - step.dayTo;
+          statusLabel = `⚠️ 已逾 ${overdue} 天`;
+          statusColor = '#dc2626';
+        }
+      }
+    }
+
+    // phase 分隔標題
+    if (step.phase !== lastPhase) {
+      html += `<div style="display:flex;align-items:center;gap:8px;margin:${lastPhase?'16px':0} 0 8px">
+        <div style="height:2px;flex:1;background:${phColor};opacity:.3"></div>
+        <div style="font-size:11px;font-weight:900;color:${phColor};padding:2px 10px;border-radius:999px;border:1.5px solid ${phColor}20;background:${phColor}10">${step.phase} 期</div>
+        <div style="height:2px;flex:1;background:${phColor};opacity:.3"></div>
+      </div>`;
+      lastPhase = step.phase;
+    }
+
+    html += `<div style="border-radius:14px;border:2px solid ${isDone?'#bbf7d0':step.dayFrom<=60&&step.items.some(x=>x.includes('亞磷'))?'#fde68a':'#e5e2db'};background:${isDone?'#f0fdf4':'#fff'};padding:12px 14px;margin-bottom:8px;${isDone?'opacity:.7':''}">
+      ${urgentBanner}
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+            <span style="background:${step.bg};color:${step.color};font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px">${step.icon} Day ${step.dayFrom}${step.dayFrom!==step.dayTo?`-${step.dayTo}`:''}</span>
+            ${dateRange?`<span style="font-size:10px;color:#a8a29e">${dateRange}</span>`:''}
+          </div>
+          <div style="font-weight:900;font-size:14px;color:#1a1a1a;margin-bottom:5px">${step.title}</div>
+          <ul style="margin:0;padding-left:16px;font-size:12px;color:#374151;line-height:1.8">
+            ${step.items.map(it=>`<li>${esc(it)}</li>`).join('')}
+          </ul>
+          ${step.note?`<div style="margin-top:6px;font-size:11px;color:${step.note.includes('⚠️')||step.note.includes('⭐')?'#d97706':'#6b7280'};font-style:italic">${esc(step.note)}</div>`:''}
+        </div>
+        <div style="margin-left:10px;flex-shrink:0;text-align:right">
+          ${plantDate?`<div style="font-size:11px;font-weight:700;color:${statusColor};margin-bottom:6px">${statusLabel}</div>`:''}
+          ${schedule?`<button onclick="toggleSopDone('${sopSelPlot}','${step.id}')"
+            style="padding:5px 10px;border-radius:8px;border:1.5px solid ${isDone?'#16a34a':'#e5e2db'};background:${isDone?'#f0fdf4':'#fafaf7'};color:${isDone?'#16a34a':'#78716c'};font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">
+            ${isDone?'✅ 已完成':'○ 標記完成'}
+          </button>`:''}
+        </div>
+      </div>
+    </div>`;
+  });
+
+  // 核心原則
+  html += `</div>
+  <div class="card p-4 mb-3" style="border-left:4px solid #d97706">
+    <div style="font-weight:900;font-size:13px;color:#d97706;margin-bottom:10px">📌 核心原則</div>
+    ${principles.map(p=>`<div style="display:flex;gap:8px;margin-bottom:7px;font-size:12px;color:#374151;line-height:1.6">
+      <span style="flex-shrink:0">${p.icon}</span><span>${p.text}</span>
+    </div>`).join('')}
+  </div>
+
+  <!-- 說明 -->
+  ${!sopSelPlot?`<div style="background:#f0fdf4;border-radius:12px;padding:12px 14px;font-size:12px;color:#374151;line-height:1.8">
+    💡 <b>使用方式：</b>選擇上方田區，系統會依種植日期自動計算每個作業的預計日期，並在行事曆上顯示 SOP 排程。可點「標記完成」追蹤進度。
+  </div>`:''}`;
+
+  document.getElementById('page-sop').innerHTML = html;
+}
+
+function setSopPlot(pid) {
+  sopSelPlot = pid;
+  // 若尚無排程，自動建立
+  if (pid && !DB_SOP.find(s=>s.plotId===pid)) {
+    DB_SOP.push({id:uid(), plotId:pid, doneSteps:[], createdAt:today()});
+    saveSOP();
+  }
+  renderSOP();
+}
+
+function toggleSopDone(plotId, stepId) {
+  const sch = DB_SOP.find(s=>s.plotId===plotId);
+  if (!sch) return;
+  if (!sch.doneSteps) sch.doneSteps=[];
+  if (sch.doneSteps.includes(stepId)) {
+    sch.doneSteps = sch.doneSteps.filter(x=>x!==stepId);
+  } else {
+    sch.doneSteps.push(stepId);
+  }
+  saveSOP();
+  renderSOP();
+}
+
+/* ── SOP 事件整合進行事曆 ── */
+// 這個函式在 farmCalHTML 中被呼叫，為所有有 SOP 排程的田區加入事件
+function getSopCalEvents(ym) {
+  const events = [];
+  DB_SOP.forEach(sch => {
+    const plot = DB.plots.find(p=>p.id===sch.plotId);
+    if (!plot?.plantDate) return;
+    SOP_STEPS.forEach(step => {
+      const dateFrom = addDays(plot.plantDate, step.dayFrom);
+      if (!dateFrom.startsWith(ym)) return;
+      const isDone = sch.doneSteps?.includes(step.id);
+      events.push({
+        date: dateFrom,
+        label: `${plot.name} ${step.title.split('（')[0].slice(0,8)}`,
+        color: isDone ? '#16a34a' : step.color,
+        icon:  isDone ? '✅' : step.icon,
+        type: 'sop',
+      });
+    });
+  });
+  return events;
+}
+
+/* ════════════════════════════════════════════════════════
+   啟動
+════════════════════════════════════════════════════════ */
+switchMain('dashboard');
+</script>
+</body>
+</html>
